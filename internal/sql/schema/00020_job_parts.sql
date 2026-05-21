@@ -7,7 +7,7 @@ CREATE TABLE job_parts (
   unit_price_at_use DECIMAL(10, 2) NOT NULL, -- Snapshot of price at time of use
   subtotal DECIMAL(10, 2) GENERATED ALWAYS AS (quantity_used * unit_price_at_use) STORED,
   notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- +goose Down

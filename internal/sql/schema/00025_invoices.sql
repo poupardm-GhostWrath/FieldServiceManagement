@@ -7,7 +7,6 @@ CREATE TABLE invoices (
   subtotal DECIMAL(10, 2) NOT NULL,
   tax_rate DECIMAL(5, 4) DEFAULT 0.05, -- GST 5%
   tax_amount DECIMAL(10, 2) GENERATED ALWAYS AS (subtotal * tax_rate) STORED,
-  total_amount DECIMAL(10, 2) GENERATED ALWAYS AS (subtotal + tax_amount) STORED,
   status VARCHAR(50) NOT NULL DEFAULT 'pending', -- pending, paid, overdue, void
   due_date DATE NOT NULL,
   issued_date DATE NOT NULL DEFAULT CURRENT_DATE,
