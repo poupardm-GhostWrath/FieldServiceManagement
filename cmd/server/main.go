@@ -2,21 +2,16 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/database"
+	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/models"
 )
-
-type apiConfig struct {
-	role      string
-	db        *sql.DB
-	dbQueries *database.Queries
-	platform  string
-}
 
 func main() {
 	// Get Environmental Data
@@ -38,7 +33,7 @@ func main() {
 		dbAddr = "localhost:5432" // Use localhost if not set
 	}
 	dbURL := fmt.Sprintf(
-		"postgres://%s.%s@%s/%s?sslmode=disable",
+		"postgres://%s:%s@%s/%s?sslmode=disable",
 		dbUser,
 		dbPass,
 		dbAddr,
@@ -61,19 +56,20 @@ func main() {
 	}
 
 	// Open SQL database
-	db, err := sql.Open("postgres", dbURL)
+	db, err := pgx.Connect(context.Background(), dbURL)
 	if err != nil {
-		log.Fatalf("Error opening database: %v", err)
+		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
+	defer db.Close(context.Background())
 
 	// Create Queries
 	dbQueries := database.New(db)
 
 	// Create APIConfig
-	apiCfg := apiConfig{
-		db:        db,
-		dbQueries: dbQueries,
-		platform:  platform,
+	apiCfg := models.APIConfig{
+		DB:        db,
+		DBQueries: dbQueries,
+		Platform:  platform,
 	}
 
 	// Create Server Mux
@@ -82,6 +78,10 @@ func main() {
 	// Set Endpoints
 	appHandler := http.StripPrefix("/app/", http.FileServer(http.Dir(filepathRoot)))
 	mux.Handle("/app/", appHandler)
+
+	// Authentication & Users
+	mux.HandleFunc("POST /auth/register", apiCfg.handlerUsersRegister)
+	mux.HandleFunc("POST /auth/login", apiCfg.handlerUsersLogin)
 
 	// Create Server
 	srv := &http.Server{

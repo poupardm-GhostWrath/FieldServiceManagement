@@ -5,58 +5,55 @@
 package database
 
 import (
-	"database/sql"
-	"time"
-
 	"github.com/google/uuid"
-	"github.com/sqlc-dev/pqtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type AuditLog struct {
 	ID        int64
-	UserID    uuid.NullUUID
+	UserID    *uuid.UUID
 	Action    string
 	TableName string
-	RecordID  uuid.NullUUID
-	OldValues pqtype.NullRawMessage
-	NewValues pqtype.NullRawMessage
-	IpAddress sql.NullString
-	UserAgent sql.NullString
-	CreatedAt sql.NullTime
+	RecordID  *uuid.UUID
+	OldValues []byte
+	NewValues []byte
+	IpAddress pgtype.Text
+	UserAgent pgtype.Text
+	CreatedAt pgtype.Timestamptz
 }
 
 type Customer struct {
 	ID           uuid.UUID
-	CompanyName  sql.NullString
+	CompanyName  pgtype.Text
 	ContactName  string
 	Email        string
 	Phone        string
 	AddressLine1 string
-	AddressLine2 sql.NullString
+	AddressLine2 pgtype.Text
 	City         string
 	Province     string
 	PostalCode   string
-	Country      sql.NullString
-	Notes        sql.NullString
-	CreatedAt    sql.NullTime
-	UpdatedAt    sql.NullTime
-	DeletedAt    sql.NullTime
+	Country      pgtype.Text
+	Notes        pgtype.Text
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+	DeletedAt    pgtype.Timestamptz
 }
 
 type InventoryItem struct {
 	ID               uuid.UUID
 	Sku              string
 	Name             string
-	Description      sql.NullString
-	Category         sql.NullString
-	UnitPrice        string
+	Description      pgtype.Text
+	Category         pgtype.Text
+	UnitPrice        pgtype.Numeric
 	QuantityInStock  int32
 	ReorderThreshold int32
-	SupplierName     sql.NullString
-	SupplierContact  sql.NullString
-	IsActive         sql.NullBool
-	CreatedAt        sql.NullTime
-	UpdatedAt        sql.NullTime
+	SupplierName     pgtype.Text
+	SupplierContact  pgtype.Text
+	IsActive         pgtype.Bool
+	CreatedAt        pgtype.Timestamptz
+	UpdatedAt        pgtype.Timestamptz
 }
 
 type Invoice struct {
@@ -64,54 +61,54 @@ type Invoice struct {
 	InvoiceNumber string
 	JobID         uuid.UUID
 	CustomerID    uuid.UUID
-	Subtotal      string
-	TaxRate       sql.NullString
-	TaxAmount     sql.NullString
+	Subtotal      pgtype.Numeric
+	TaxRate       pgtype.Numeric
+	TaxAmount     pgtype.Numeric
 	Status        string
-	DueDate       time.Time
-	IssuedDate    time.Time
-	PaidDate      sql.NullTime
-	PaymentMethod sql.NullString
-	Notes         sql.NullString
-	CreatedAt     sql.NullTime
-	UpdatedAt     sql.NullTime
+	DueDate       pgtype.Date
+	IssuedDate    pgtype.Date
+	PaidDate      pgtype.Date
+	PaymentMethod pgtype.Text
+	Notes         pgtype.Text
+	CreatedAt     pgtype.Timestamptz
+	UpdatedAt     pgtype.Timestamptz
 }
 
 type Job struct {
 	ID                   uuid.UUID
 	JobNumber            string
 	CustomerID           uuid.UUID
-	AssignedTechnicianID uuid.NullUUID
+	AssignedTechnicianID *uuid.UUID
 	Title                string
-	Description          sql.NullString
+	Description          pgtype.Text
 	Status               string
-	Priority             sql.NullString
-	ScheduledStart       time.Time
-	ScheduledEnd         sql.NullTime
-	ActualStart          sql.NullTime
-	ActualEnd            sql.NullTime
+	Priority             pgtype.Text
+	ScheduledStart       pgtype.Timestamptz
+	ScheduledEnd         pgtype.Timestamptz
+	ActualStart          pgtype.Timestamptz
+	ActualEnd            pgtype.Timestamptz
 	ServiceAddressLine1  string
-	ServiceAddressLine2  sql.NullString
+	ServiceAddressLine2  pgtype.Text
 	ServiceCity          string
 	ServiceProvince      string
 	ServicePostalCode    string
-	Notes                sql.NullString
-	InternalNotes        sql.NullString
-	CreatedBy            uuid.NullUUID
-	CreatedAt            sql.NullTime
-	UpdatedAt            sql.NullTime
-	DeletedAt            sql.NullTime
+	Notes                pgtype.Text
+	InternalNotes        pgtype.Text
+	CreatedBy            *uuid.UUID
+	CreatedAt            pgtype.Timestamptz
+	UpdatedAt            pgtype.Timestamptz
+	DeletedAt            pgtype.Timestamptz
 }
 
 type JobLabor struct {
 	ID           uuid.UUID
 	JobID        uuid.UUID
 	TechnicianID uuid.UUID
-	HoursWorked  string
-	HourlyRate   string
-	Subtotal     sql.NullString
-	Description  sql.NullString
-	CreatedAt    sql.NullTime
+	HoursWorked  pgtype.Numeric
+	HourlyRate   pgtype.Numeric
+	Subtotal     pgtype.Numeric
+	Description  pgtype.Text
+	CreatedAt    pgtype.Timestamptz
 }
 
 type JobPart struct {
@@ -119,16 +116,16 @@ type JobPart struct {
 	JobID           uuid.UUID
 	InventoryItemID uuid.UUID
 	QuantityUsed    int32
-	UnitPriceAtUse  string
-	Subtotal        sql.NullString
-	Notes           sql.NullString
-	CreatedAt       sql.NullTime
+	UnitPriceAtUse  pgtype.Numeric
+	Subtotal        pgtype.Numeric
+	Notes           pgtype.Text
+	CreatedAt       pgtype.Timestamptz
 }
 
 type Role struct {
 	ID          int32
 	Name        string
-	Description sql.NullString
+	Description pgtype.Text
 }
 
 type User struct {
@@ -137,10 +134,10 @@ type User struct {
 	PasswordHash string
 	FirstName    string
 	LastName     string
-	Phone        sql.NullString
-	IsActive     sql.NullBool
-	CreatedAt    sql.NullTime
-	UpdatedAt    sql.NullTime
+	Phone        pgtype.Text
+	IsActive     pgtype.Bool
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
 }
 
 type UserRole struct {

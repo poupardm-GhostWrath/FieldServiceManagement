@@ -7,7 +7,8 @@ package database
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -24,7 +25,7 @@ type CreateUserParams struct {
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
+	row := q.db.QueryRow(ctx, createUser,
 		arg.Email,
 		arg.PasswordHash,
 		arg.FirstName,
@@ -56,11 +57,11 @@ type CreateUserWithPhoneParams struct {
 	PasswordHash string
 	FirstName    string
 	LastName     string
-	Phone        sql.NullString
+	Phone        pgtype.Text
 }
 
 func (q *Queries) CreateUserWithPhone(ctx context.Context, arg CreateUserWithPhoneParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUserWithPhone,
+	row := q.db.QueryRow(ctx, createUserWithPhone,
 		arg.Email,
 		arg.PasswordHash,
 		arg.FirstName,
