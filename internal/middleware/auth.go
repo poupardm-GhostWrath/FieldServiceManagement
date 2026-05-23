@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 
@@ -16,7 +17,7 @@ type contextKey string
 
 const userContextKey contextKey = "user"
 
-func AuthMiddleware(secretKey []byte) func(http.Handler) http.Handler {
+func AuthMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
@@ -25,7 +26,14 @@ func AuthMiddleware(secretKey []byte) func(http.Handler) http.Handler {
 				return
 			}
 
-			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) != 2 || parts[0] != "Bearer" {
+				http.Error(w, "Invalid authorization header format", http.StatusUnauthorized)
+				return
+			}
+
+			tokenString := parts[1]
+			secretKey := []byte(os.Getenv("JWT_SECRET"))
 
 			// Parse and validate token
 			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
