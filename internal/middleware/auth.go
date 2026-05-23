@@ -3,88 +3,97 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
-	"github.com/alexedwards/argon2id"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
-	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/handlers"
+	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/models"
 )
 
-type (
-	TokenType  string
-	contextKey string
-)
+type contextKey string
 
-const (
-	TokenTypeAccess  TokenType  = "field-service-management-access"
-	userIDContextKey contextKey = "userID"
-)
-
-func HashPassword(password string) (string, error) {
-	hash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
-	if err != nil {
-		return "", err
-	}
-	return hash, nil
-}
-
-func CheckPasswordHash(password, hash string) (bool, error) {
-	match, err := argon2id.ComparePasswordAndHash(password, hash)
-	if err != nil {
-		return false, err
-	}
-	return match, nil
-}
+const userContextKey contextKey = "user"
 
 func AuthMiddleware(secretKey []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
-				handlers.RespondWithError(w, http.StatusUnauthorized, "Missing authorization header", nil)
+				http.Error(w, "Missing authorization header", http.StatusUnauthorized)
 				return
 			}
 
 			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 			// Parse and validate token
-			claimsStruct := jwt.RegisteredClaims{}
-			token, err := jwt.ParseWithClaims(
-				tokenString,
-				&claimsStruct,
-				func(token *jwt.Token) (any, error) { return secretKey, nil },
-			)
-			if err != nil {
-				handlers.RespondWithError(w, http.StatusUnauthorized, "failed to parse token", err)
+			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+				}
+				return secretKey, nil
+			})
+			if err != nil || !token.Valid {
+				http.Error(w, "Invalid token", http.StatusUnauthorized)
 				return
 			}
 
-			userIDString, err := token.Claims.GetSubject()
-			if err != nil {
-				handlers.RespondWithError(w, http.StatusUnauthorized, "failed to get user ID", err)
+			// Extract claims
+			claims, ok := token.Claims.(jwt.MapClaims)
+			if !ok {
+				http.Error(w, "Invalid token claims", http.StatusUnauthorized)
 				return
 			}
 
-			issuer, err := token.Claims.GetIssuer()
-			if err != nil {
-				handlers.RespondWithError(w, http.StatusUnauthorized, "failed to get issuer", err)
-				return
-			}
-			if issuer != string(TokenTypeAccess) {
-				handlers.RespondWithError(w, http.StatusUnauthorized, "invalid issuer", nil)
-				return
+			user := &models.User{
+				ID:    claims["user_id"].(string),
+				Roles: parseRolesFromClaims(claims),
 			}
 
-			id, err := uuid.Parse(userIDString)
-			if err != nil {
-				handlers.RespondWithError(w, http.StatusUnauthorized, "invalid user ID", err)
-				return
-			}
-
-			ctx := context.WithValue(r.Context(), userIDContextKey, id)
+			ctx := context.WithValue(r.Context(), userContextKey, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+func RequireRole(requiredRoles ...string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Retrieve user from context (set by AuthMiddleware)
+			user, ok := r.Context().Value(userContextKey).(*models.User)
+			if !ok || user == nil {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			// Check if user has any of the required roles
+			hasRole := false
+			for _, userRole := range user.Roles {
+				if slices.Contains(requiredRoles, userRole) {
+					hasRole = true
+					break
+				}
+			}
+
+			if !hasRole {
+				http.Error(w, "Forbidden: Insufficient permissions", http.StatusForbidden)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func parseRolesFromClaims(claims jwt.MapClaims) []string {
+	var roles []string
+	if roleData, ok := claims["roles"].([]any); ok {
+		for _, r := range roleData {
+			if roleName, ok := r.(string); ok {
+				roles = append(roles, roleName)
+			}
+		}
+	}
+	return roles
 }
