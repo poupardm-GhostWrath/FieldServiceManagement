@@ -28,3 +28,29 @@ func (q *Queries) CreateUserRoles(ctx context.Context, arg CreateUserRolesParams
 	err := row.Scan(&i.UserID, &i.RoleID)
 	return i, err
 }
+
+const getUserRoles = `-- name: GetUserRoles :many
+SELECT roles.name FROM user_roles
+INNER JOIN roles ON roles.id = role_id
+WHERE user_id = $1
+`
+
+func (q *Queries) GetUserRoles(ctx context.Context, userID uuid.UUID) ([]string, error) {
+	rows, err := q.db.Query(ctx, getUserRoles, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		items = append(items, name)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
