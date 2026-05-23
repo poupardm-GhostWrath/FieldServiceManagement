@@ -3,43 +3,19 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/database"
-	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/models"
+	"github.com/go-chi/chi/v5"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/config"
+	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/middleware"
 )
 
 func main() {
 	// Get Environmental Data
-	// POSTGRES Environment Variables
-	dbUser := os.Getenv("POSTGRES_USER")
-	if dbUser == "" {
-		log.Fatal("POSTGRES_USER must be set")
-	}
-	dbPass := os.Getenv("POSTGRES_PASS")
-	if dbPass == "" {
-		log.Fatal("POSTGRES_PASS must be set")
-	}
-	dbName := os.Getenv("POSTGRES_DB")
-	if dbName == "" {
-		log.Fatal("POSTGRES_DB must be set")
-	}
-	dbAddr := os.Getenv("POSTGRES_ADDR")
-	if dbAddr == "" {
-		dbAddr = "localhost:5432" // Use localhost if not set
-	}
-	dbURL := fmt.Sprintf(
-		"postgres://%s:%s@%s/%s?sslmode=disable",
-		dbUser,
-		dbPass,
-		dbAddr,
-		dbName)
-
-	// Go Server Environment Variables
 	filepathRoot := os.Getenv("FILEPATH_ROOT")
 	if filepathRoot == "" {
 		log.Fatal("FILEPATH_ROOT must be set")
@@ -49,46 +25,86 @@ func main() {
 		log.Fatal("PORT must be set")
 	}
 
-	// Development Environment Variables
-	platform := os.Getenv("PLATFORM")
-	if platform == "" {
-		platform = "live" // 'live' if not in 'dev' mode
-	}
+	// Create Router
+	r := chi.NewRouter()
 
-	// Open SQL database
-	db, err := pgx.Connect(context.Background(), dbURL)
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
-	}
-	defer db.Close(context.Background())
+	// Set Middleware
+	r.Use(chimiddleware.Logger)
+	r.Use(chimiddleware.Recoverer)
+	r.Use(chimiddleware.Timeout(60 * time.Second))
 
-	// Create Queries
-	dbQueries := database.New(db)
+	// Initial Entrypoint
+	r.Handle("/", http.FileServer(http.Dir(filepathRoot)))
 
-	// Create APIConfig
-	apiCfg := models.APIConfig{
-		DB:        db,
-		DBQueries: dbQueries,
-		Platform:  platform,
-	}
-
-	// Create Server Mux
-	mux := http.NewServeMux()
-
-	// Set Endpoints
-	appHandler := http.StripPrefix("/app/", http.FileServer(http.Dir(filepathRoot)))
-	mux.Handle("/app/", appHandler)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.AuthMiddleware([]byte(os.Getenv("JWT_SECRET"))))
+	})
 
 	// Authentication & Users
-	mux.HandleFunc("POST /auth/register", apiCfg.handlerUsersRegister)
-	mux.HandleFunc("POST /auth/login", apiCfg.handlerUsersLogin)
+	/*
+		mux.HandleFunc("POST /auth/register", apiCfg.handlerUsersRegister) 			// Public
+		mux.HandleFunc("POST /auth/login", apiCfg.handlerUsersLogin)						// Public
+		mux.HandleFunc("GET /users/me", apiCfg.handlerUsersProfileGet)					// All
+		mux.HandleFunc("PUT /users/me", apiCfg.handlerUsersProfileUpdate)				// All
+		mux.HandleFunc("GET /users", apiCfg.handlerUsersGet)										// Admin, Dispatcher
+		mux.HandleFunc("GET /users/{userID}, apiCfg.handlerUsersGetByID")				// Admin, Dispatcher
+		mux.HandleFunc("POST /users", apiCfg.handlerUsersCreate)								// Admin
+		mux.HandleFunc("PUT /users/{userID}", apiCfg.handlerUsersUpdateByID)		// Admin
+		mux.HandleFunc("DELETE /users/{userID}", apiCfg.handlerUsersDeleteByID)	// Admin (Soft delete)
+	*/
 
-	// Create Server
-	srv := &http.Server{
-		Addr:    ":" + port,
-		Handler: mux,
-	}
+	// Customers
+	/*
+		mux.HandleFunc("GET /customers", apiCfg.handlerCustomersGet)												// Admin, Dispatcher, Technician
+		mux.HandleFunc("GET /customers/{customerID}", apiCfg.handlerCustomersGetByID)				// Admin, Dispatcher, Technician, Customer
+		mux.HandleFunc("POST /customers", apiCfg.handlerCustomersCreate)										// Admin, Dispatcher
+		mux.HandleFunc("PUT /customers/{customerID}", apiCfg.handlerCustomersUpdate)				// Admin, Dispatcher
+		mux.HandleFunc("DELETE /customers/{customerID}", apiCfg.handlerCustomersDelete)			// Admin (Soft delete)
+		mux.HandleFunc("GET /customers/{customerID}/jobs", apiCfg.handlerCustomersGetJobs)	// Admin, Dispatcher, Technician, Customer
+	*/
 
+	// Inventory
+	/*
+		mux.HandleFunc("GET /inventory", apiCfg.handlerIventoryGet)													// Admin, Dispatcher, Technician
+		mux.HandleFunc("GET /inventory/{itemID}", apiCfg.handlerInventoryGetByID)						// Admin, Dispatcher, Technician
+		mux.HandleFunc("POST /inventory", apiCfg.handlerInventoryCreate)										// Admin, Dispatcher
+		mux.HandleFunc("PUT /inventory/{itemID}", apiCfg.handlerInventoryUpdate)						// Admin, Dispatcher
+		mux.HandleFunc("DELETE /inventory/{itemID}", apiCfg.handlerInventoryDelete)					// Admin
+		mux.HandleFunc("POST /inventory/{itemID}/restock", apiCfg.handlerInventoryRestock)	// Admin, Dispatcher
+		mux.HandleFunc("GET /inventory/alerts", apiCfg.handlerInventoryAlert)								// Admin, Dispatcher
+	*/
+
+	// Jobs
+	/*
+		mux.HandleFunc("GET /jobs", apiCfg.handlerJobsGet)																		// Admin, Dispatcher, Technician
+		mux.HandleFunc("GET /jobs/{jobID}", apiCfg.handlerJobsGetByID)												// Admin, Dispatcher, Technician
+		mux.HandleFunc("POST /jobs", apiCfg.handlerJobsCreate)																// Admin, Dispatcher
+		mux.HandleFunc("PUT /jobs/{jobID}", apiCfg.handlerJobsUpdate)													// Admin, Dispatcher
+		mux.HandleFunc("DELETE /jobs/{jobID}", apiCfg.handlerJobsDelete)											// Admin, Dispatcher
+		mux.HandleFunc("PATCH /jobs/{jobID}/status", apiCfg.handlerJobsPatch)									// Admin, Dispatcher, Technician
+		mux.HandleFunc("POST /jobs/{jobID}/parts", apiCfg.handlerJobsAddParts)								// Dispatcher, Technician
+		mux.HandleFunc("POST /jobs/{jobID}/labor", apiCfg.handlerJobsLogLabor)								// Dispatcher, Technician
+		mux.HandleFunc("GET /jobs/schedule", apiCfg.handlerJobsGetSchedule)										// Admin, Dispatcher
+		mux.HandleFunc("GET /jobs/tech/{techID}/schedule", apiCfg.handlerJobsGetTechSchedule)	// Admin, Dispatcher, Technician
+	*/
+
+	// Invoices
+	/*
+		mux.HandleFunc("GET /invoices", apiCfg.handlerInvoicesGet)										// Admin, Dispatcher, Technician, Customer
+		mux.HandleFunc("GET /invoices/{invoiceID}", apiCfg.handlerInvoicesGetByID)		// Admin, Dispatcher, Technician, Customer
+		mux.HandleFunc("POST /invoices", apiCfg.handlerInvoicesCreate)								// Admin, Dispatcher
+		mux.HandleFunc("PUT /invoices/{invoiceID}", apiCfg.handlerInvoicesUpdate)			// Admin
+		mux.HandleFunc("POST /invoices/{invoiceID}/pay", apiCfg.handlerInvoicesPaid)	// Admin, Customer
+		mux.HandleFunc("GET /invoices/{invoiceID}/pdf", apiCfg.handlerInvoicesPDF)		// Admin, Dispatcher, Technician, Customer
+	*/
+
+	// Reports & Analytics
+	/*
+		mux.HandleFunc("GET /reports/revenue", apiCfg.handlerReportsRevenue)									// Admin
+		mux.HandleFunc("GET /reports/technician-performance", apiCfg.handlerReportsTechPerf)	// Admin, Dispatcher
+		mux.HandleFunc("GET /reports/inventory-usage", apiCfg.handlerReportsInventory)				// Admin
+	*/
+	defer config.APICfg.DB.Close(context.Background())
 	log.Printf("Serving on port: %s\n", port)
-	log.Fatal(srv.ListenAndServe())
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }
