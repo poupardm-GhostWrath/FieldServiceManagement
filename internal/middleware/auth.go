@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/auth"
+	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/config"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/models"
 )
 
@@ -36,7 +38,7 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 			secretKey := []byte(os.Getenv("JWT_SECRET"))
 
 			// Parse and validate token
-			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+			token, err := jwt.ParseWithClaims(tokenString, &auth.CustomClaims{}, func(token *jwt.Token) (any, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 				}
@@ -48,15 +50,28 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 			}
 
 			// Extract claims
-			claims, ok := token.Claims.(jwt.MapClaims)
+			claims, ok := token.Claims.(*auth.CustomClaims)
 			if !ok {
 				http.Error(w, "Invalid token claims", http.StatusUnauthorized)
 				return
 			}
 
-			user := &models.User{
-				ID:    claims["user_id"].(string),
-				Roles: parseRolesFromClaims(claims),
+			dbUser, err := config.APICfg.DBQueries.GetUserByEmail(r.Context(), claims.Email)
+			if err != nil {
+				http.Error(w, "Failed to retrieve user", http.StatusInternalServerError)
+				return
+			}
+
+			dbUserRole, err := config.APICfg.DBQueries.GetUserRoles(r.Context(), dbUser.ID)
+			if err != nil {
+				http.Error(w, "Failed to retrieve user roles", http.StatusInternalServerError)
+				return
+			}
+
+			user := models.User{
+				ID:    dbUser.ID.String(),
+				Email: dbUser.Email,
+				Roles: dbUserRole,
 			}
 
 			ctx := context.WithValue(r.Context(), userContextKey, user)
@@ -92,16 +107,4 @@ func RequireRole(requiredRoles ...string) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	}
-}
-
-func parseRolesFromClaims(claims jwt.MapClaims) []string {
-	var roles []string
-	if roleData, ok := claims["roles"].([]any); ok {
-		for _, r := range roleData {
-			if roleName, ok := r.(string); ok {
-				roles = append(roles, roleName)
-			}
-		}
-	}
-	return roles
 }

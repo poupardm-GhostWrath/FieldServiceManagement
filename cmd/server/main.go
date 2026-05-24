@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/config"
+	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/handlers"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/middleware"
 )
 
@@ -36,8 +37,18 @@ func main() {
 	// Initial Entrypoint
 	r.Handle("/", http.FileServer(http.Dir(filepathRoot)))
 
+	// Public Routes
+	r.Route("/auth", func(r chi.Router) {
+		r.Post("/login", handlers.Login)
+	})
+
+	// Protected Routes
 	r.Group(func(r chi.Router) {
-		r.Use(middleware.AuthMiddleware([]byte(os.Getenv("JWT_SECRET"))))
+		r.Use(middleware.AuthMiddleware())
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.RequireRole("admin", "dispatcher"))
+			r.Get("/users", handlers.ListUsers)
+		})
 	})
 
 	// Authentication & Users
