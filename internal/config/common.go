@@ -3,6 +3,7 @@ package config
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -19,10 +20,23 @@ type GlobalConfig struct {
 }
 
 func init() {
-	dbURL := os.Getenv("DB_URL")
-	if dbURL == "" {
-		log.Fatal("DB_URL must be set")
+	dbUser := os.Getenv("DB_USER")
+	if dbUser == "" {
+		dbUser = "fsm_user"
 	}
+	dbPass := os.Getenv("DB_PASSWORD")
+	if dbPass == "" {
+		dbPass = "fsm_secure_password_2026"
+	}
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "fsm_db"
+	}
+	dbPort := os.Getenv("DB_PORT")
+	if dbPort == "" {
+		dbPort = "5432"
+	}
+	dbURL := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", dbUser, dbPass, dbPort, dbName)
 
 	platform := os.Getenv("PLATFORM")
 	if platform == "" {

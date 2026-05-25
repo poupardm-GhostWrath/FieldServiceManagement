@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  db:
+    image: docker.io/library/postgres:latest
+    container_name: fsm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-fsm_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fsm_secure_password_2026}
+      POSTGRES_DB: ${DB_NAME:-fsm_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fsm_user} -d ${DB_NAME:-fsm_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - fsm-network
+  
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    container_name: fsm-migrate
+    environment:
+      GOOSE_DRIVER: "postgres"
+      GOOSE_DBSTRING: "postgres://${DB_USER:-fsm_user}:${DB_PASSWORD:-fsm_secure_password_2026}@db:5432/${DB_NAME:-fsm_db}?sslmode=disable"
+      GOOSE_MIGRATION_DIR: "."
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - fsm-network
+    restart: "no"
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  fsm-network:
+    driver: bridge
+

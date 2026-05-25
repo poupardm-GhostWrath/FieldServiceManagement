@@ -6,30 +6,21 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/database"
-	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/middleware"
+	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/auth"
+	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/config"
 )
 
 func main() {
-	const dbURL = "postgres://postgres:postgres@localhost:5432/fieldservicemanagement?sslmode=disable"
-
-	db, err := pgx.Connect(context.Background(), dbURL)
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
-	}
-	defer db.Close(context.Background())
-
-	hash, err := middleware.HashPassword("admin")
+	hash, err := auth.HashPassword("admin")
 	if err != nil {
 		log.Fatalf("Failed to hash password: %v\n", err)
 	}
 
-	dbQueries := database.New(db)
 
 	fmt.Println("Creating test admin user")
 
-	user, err := dbQueries.CreateUser(context.Background(), database.CreateUserParams{
+	user, err := config.APICfg.DBQueries.CreateUser(context.Background(), database.CreateUserParams{
 		Email:        "test@example.com",
 		PasswordHash: hash,
 		FirstName:    "test",
@@ -46,7 +37,7 @@ func main() {
 
 	fmt.Println()
 	fmt.Println("Getting admin role")
-	role, err := dbQueries.GetRoleByName(context.Background(), "admin")
+	role, err := config.APICfg.DBQueries.GetRoleByName(context.Background(), "admin")
 	if err != nil {
 		log.Fatalf("failed to get admin role: %v\n", err)
 	}
@@ -56,7 +47,7 @@ func main() {
 
 	fmt.Println()
 	fmt.Println("Creating user role entry")
-	userRole, err := dbQueries.CreateUserRoles(context.Background(), database.CreateUserRolesParams{
+	userRole, err := config.APICfg.DBQueries.CreateUserRoles(context.Background(), database.CreateUserRolesParams{
 		UserID: user.ID,
 		RoleID: role.ID,
 	})
