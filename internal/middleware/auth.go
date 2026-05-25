@@ -4,6 +4,7 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"slices"
@@ -84,8 +85,8 @@ func RequireRole(requiredRoles ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Retrieve user from context (set by AuthMiddleware)
-			user, ok := r.Context().Value(userContextKey).(*models.User)
-			if !ok || user == nil {
+			user, ok := r.Context().Value(userContextKey).(models.User)
+			if !ok {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}

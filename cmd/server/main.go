@@ -45,10 +45,7 @@ func main() {
 	// Protected Routes
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AuthMiddleware())
-		r.Group(func(r chi.Router) {
-			r.Use(middleware.RequireRole("admin", "dispatcher"))
-			r.Get("/users", handlers.ListUsers)
-		})
+		r.With(middleware.RequireRole("admin", "dispatcher")).Get("/users", handlers.ListUsers)
 	})
 
 	// Authentication & Users
