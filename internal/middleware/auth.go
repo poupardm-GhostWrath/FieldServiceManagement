@@ -4,7 +4,6 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"slices"

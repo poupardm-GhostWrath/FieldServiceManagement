@@ -40,6 +40,7 @@ func main() {
 	// Public Routes
 	r.Route("/auth", func(r chi.Router) {
 		r.Post("/login", handlers.Login)
+		r.Post("/register", handlers.RegisterUsers)
 	})
 
 	// Protected Routes
