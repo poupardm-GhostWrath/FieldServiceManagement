@@ -67,9 +67,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, LoginResponse{
 		Token: tokenString,
 		User: models.User{
-			ID:    dbUser.ID.String(),
-			Email: dbUser.Email,
-			Roles: roles,
+			ID:        dbUser.ID.String(),
+			Email:     dbUser.Email,
+			FirstName: dbUser.FirstName,
+			LastName:  dbUser.LastName,
+			Phone:     dbUser.Phone,
+			IsActive:  dbUser.IsActive,
+			CreatedAt: dbUser.CreatedAt,
+			UpdatedAt: dbUser.UpdatedAt,
+			Roles:     roles,
 		},
 	})
 }

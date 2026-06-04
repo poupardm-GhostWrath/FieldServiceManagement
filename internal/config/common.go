@@ -26,7 +26,7 @@ func init() {
 	}
 	dbPass := os.Getenv("DB_PASSWORD")
 	if dbPass == "" {
-		dbPass = "fsm_secure_password_2026"
+		dbPass = "fsm_pass"
 	}
 	dbName := os.Getenv("DB_NAME")
 	if dbName == "" {

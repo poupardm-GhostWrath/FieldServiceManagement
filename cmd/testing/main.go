@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/database"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/auth"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/config"
+	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/database"
 )
 
 func main() {
@@ -17,14 +17,13 @@ func main() {
 		log.Fatalf("Failed to hash password: %v\n", err)
 	}
 
-
 	fmt.Println("Creating test admin user")
 
 	user, err := config.APICfg.DBQueries.CreateUser(context.Background(), database.CreateUserParams{
-		Email:        "test@example.com",
+		Email:        "admin@example.com",
 		PasswordHash: hash,
-		FirstName:    "test",
-		LastName:     "admin",
+		FirstName:    "admin_f",
+		LastName:     "admin_l",
 	})
 	if err != nil {
 		log.Fatalf("failed to create user: %v\n", err)
