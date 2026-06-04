@@ -47,6 +47,7 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AuthMiddleware())
 		r.With(middleware.RequireRole("admin", "dispatcher")).Get("/users", handlers.ListUsers)
+		r.Get("/users/me", handlers.GetUserProfile)
 	})
 
 	// Authentication & Users

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/auth"
@@ -127,6 +128,55 @@ func RegisterUsers(w http.ResponseWriter, r *http.Request) {
 			CreatedAt: dbUser.CreatedAt,
 			UpdatedAt: dbUser.UpdatedAt,
 			Roles:     []string{dbRole.RoleName},
+		},
+	})
+}
+
+func GetUserProfile(w http.ResponseWriter, r *http.Request) {
+	type response struct {
+		User models.User `json:"user"`
+	}
+
+	// 1. Get Token
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// 2. Verify Token
+	userID, err := auth.ValidateToken(token, []byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// 3. Get User from DB
+	dbUser, err := config.APICfg.DBQueries.GetUserByID(r.Context(), userID)
+	if err != nil {
+		http.Error(w, "Couldn't retrieve user", http.StatusInternalServerError)
+		return
+	}
+
+	// 4. Get User Roles
+	dbRoles, err := config.APICfg.DBQueries.GetUserRoles(r.Context(), dbUser.ID)
+	if err != nil {
+		http.Error(w, "Couldn't retrieve user roles", http.StatusInternalServerError)
+		return
+	}
+
+	// 5. Respond
+	RespondWithJSON(w, http.StatusOK, response{
+		User: models.User{
+			ID:        dbUser.ID.String(),
+			Email:     dbUser.Email,
+			FirstName: dbUser.FirstName,
+			LastName:  dbUser.LastName,
+			Phone:     dbUser.Phone,
+			IsActive:  dbUser.IsActive,
+			CreatedAt: dbUser.CreatedAt,
+			UpdatedAt: dbUser.UpdatedAt,
+			Roles:     dbRoles,
 		},
 	})
 }
