@@ -48,6 +48,7 @@ func main() {
 		r.Use(middleware.AuthMiddleware())
 		r.With(middleware.RequireRole("admin", "dispatcher")).Get("/users", handlers.ListUsers)
 		r.Get("/users/me", handlers.GetUserProfile)
+		r.Put("/users/me", handlers.UpdateUserProfile)
 	})
 
 	// Authentication & Users
