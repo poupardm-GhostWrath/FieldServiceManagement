@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/auth"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/config"
@@ -309,6 +310,49 @@ func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 			CreatedAt: dbUserUpdated.CreatedAt,
 			UpdatedAt: dbUserUpdated.UpdatedAt,
 			Roles:     roles,
+		},
+	})
+}
+
+func GetUserDetails(w http.ResponseWriter, r *http.Request) {
+	type response struct {
+		User models.User `json:"user"`
+	}
+
+	// 1. Get request user id
+	userIDString := r.PathValue("userID")
+	userID, err := uuid.Parse(userIDString)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	// 2. Get user from DB
+	dbUser, err := config.APICfg.DBQueries.GetUserByID(r.Context(), userID)
+	if err != nil {
+		http.Error(w, "Couldn't retrieve user", http.StatusInternalServerError)
+		return
+	}
+
+	// 3. Get user roles from DB
+	dbRoles, err := config.APICfg.DBQueries.GetUserRoles(r.Context(), dbUser.ID)
+	if err != nil {
+		http.Error(w, "Couldn't retrieve user roles", http.StatusInternalServerError)
+		return
+	}
+
+	// 3. Respond
+	RespondWithJSON(w, http.StatusOK, response{
+		User: models.User{
+			ID:        dbUser.ID.String(),
+			Email:     dbUser.Email,
+			FirstName: dbUser.FirstName,
+			LastName:  dbUser.LastName,
+			Phone:     dbUser.Phone,
+			IsActive:  dbUser.IsActive,
+			CreatedAt: dbUser.CreatedAt,
+			UpdatedAt: dbUser.UpdatedAt,
+			Roles:     dbRoles,
 		},
 	})
 }
