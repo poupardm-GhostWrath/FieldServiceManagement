@@ -50,6 +50,7 @@ func main() {
 		r.Get("/users/me", handlers.GetUserProfile)
 		r.Put("/users/me", handlers.UpdateUserProfile)
 		r.With(middleware.RequireRole("admin", "dispatcher")).Get("/users/{userID}", handlers.GetUserDetails)
+		r.With(middleware.RequireRole("admin")).Post("/users", handlers.UserCreate)
 	})
 
 	// Authentication & Users

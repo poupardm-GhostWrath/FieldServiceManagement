@@ -356,3 +356,102 @@ func GetUserDetails(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 }
+
+func UserCreate(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		Email     string   `json:"email"`
+		FirstName string   `json:"first_name"`
+		LastName  string   `json:"last_name"`
+		Phone     string   `json:"phone"`
+		Roles     []string `json:"roles"`
+	}
+
+	type response struct {
+		User models.User `json:"user"`
+	}
+
+	// 1. Fetch parameters from request
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err := decoder.Decode(&params)
+	if err != nil {
+		http.Error(w, "Couldn't decode parameters", http.StatusBadRequest)
+		return
+	}
+
+	// 2. Verify email
+	if ok := services.ValidateEmail(params.Email); !ok {
+		http.Error(w, "Invalid email", http.StatusBadRequest)
+		return
+	}
+
+	// 3. Generate default password
+	password := "DefaultPassword123!"
+	hash, err := auth.HashPassword(password)
+	if err != nil {
+		http.Error(w, "Couldn't generate hash", http.StatusInternalServerError)
+		return
+	}
+
+	// 4. Check if phone is set
+	pgPhone := pgtype.Text{
+		String: params.Phone,
+		Valid:  true,
+	}
+	if params.Phone == "" {
+		pgPhone.Valid = false
+	}
+
+	// 5. Get Roles
+	dbRoles := []database.Role{}
+	for _, role := range params.Roles {
+		dbRole, err := config.APICfg.DBQueries.GetRoleByName(r.Context(), role)
+		if err != nil {
+			http.Error(w, "Couldn't retrieve role", http.StatusInternalServerError)
+			return
+		}
+		dbRoles = append(dbRoles, dbRole)
+	}
+
+	// 6. Create User
+	dbUser, err := config.APICfg.DBQueries.CreateUser(r.Context(), database.CreateUserParams{
+		Email:        params.Email,
+		PasswordHash: hash,
+		FirstName:    params.FirstName,
+		LastName:     params.LastName,
+		Phone:        pgPhone,
+	})
+	if err != nil {
+		http.Error(w, "Couldn't create user", http.StatusInternalServerError)
+		return
+	}
+
+	// 7. Create User Roles
+	roles := []string{}
+	for _, role := range dbRoles {
+		dbUserRole, err := config.APICfg.DBQueries.CreateUserRoles(r.Context(), database.CreateUserRolesParams{
+			UserID: dbUser.ID,
+			RoleID: role.ID,
+		})
+		if err != nil {
+			http.Error(w, "Couldn't create user role", http.StatusInternalServerError)
+			return
+		}
+		roles = append(roles, dbUserRole.RoleName)
+	}
+
+	// 8. Respond
+	RespondWithJSON(w, http.StatusCreated, response{
+		User: models.User{
+			ID:        dbUser.ID.String(),
+			Email:     dbUser.Email,
+			FirstName: dbUser.FirstName,
+			LastName:  dbUser.LastName,
+			Phone:     dbUser.Phone,
+			IsActive:  dbUser.IsActive,
+			CreatedAt: dbUser.CreatedAt,
+			UpdatedAt: dbUser.UpdatedAt,
+			Roles:     roles,
+		},
+	})
+}
