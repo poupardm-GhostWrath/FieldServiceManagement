@@ -51,6 +51,7 @@ func main() {
 		r.Put("/users/me", handlers.UpdateUserProfile)
 		r.With(middleware.RequireRole("admin", "dispatcher")).Get("/users/{userID}", handlers.GetUserDetails)
 		r.With(middleware.RequireRole("admin")).Post("/users", handlers.UserCreate)
+		r.With(middleware.RequireRole("admin")).Put("/users/{userID}", handlers.UpdateUser)
 	})
 
 	// Authentication & Users

@@ -40,6 +40,16 @@ func (q *Queries) CreateUserRoles(ctx context.Context, arg CreateUserRolesParams
 	return i, err
 }
 
+const deleteUserRoles = `-- name: DeleteUserRoles :exec
+DELETE FROM user_roles
+WHERE user_id = $1
+`
+
+func (q *Queries) DeleteUserRoles(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUserRoles, userID)
+	return err
+}
+
 const getUserRoles = `-- name: GetUserRoles :many
 SELECT roles.name FROM user_roles
 INNER JOIN roles ON roles.id = role_id

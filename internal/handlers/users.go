@@ -267,7 +267,7 @@ func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 7. Update User
-	dbUserUpdated, err := config.APICfg.DBQueries.UpdateUserByID(r.Context(), database.UpdateUserByIDParams{
+	dbUserUpdated, err := config.APICfg.DBQueries.UpdateUserProfileByID(r.Context(), database.UpdateUserProfileByIDParams{
 		ID:           dbUser.ID,
 		Email:        params.Email,
 		PasswordHash: passwordHash,
@@ -452,6 +452,113 @@ func UserCreate(w http.ResponseWriter, r *http.Request) {
 			CreatedAt: dbUser.CreatedAt,
 			UpdatedAt: dbUser.UpdatedAt,
 			Roles:     roles,
+		},
+	})
+}
+
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		Email     string   `json:"email"`
+		FirstName string   `json:"first_name"`
+		LastName  string   `json:"last_name"`
+		Phone     string   `json:"phone"`
+		Roles     []string `json:"roles"`
+	}
+
+	type response struct {
+		User models.User `json:"user"`
+	}
+
+	// 1. Fetch user ID
+	userIDString := r.PathValue("userID")
+	userID, err := uuid.Parse(userIDString)
+	if err != nil {
+		http.Error(w, "Couldn't parse ID", http.StatusBadRequest)
+		return
+	}
+
+	// 2. Fetch parameters from request
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err = decoder.Decode(&params)
+	if err != nil {
+		http.Error(w, "Couldn't decode parameters", http.StatusBadRequest)
+		return
+	}
+
+	// 3. Get user from DB
+	dbUser, err := config.APICfg.DBQueries.GetUserByID(r.Context(), userID)
+	if err != nil {
+		http.Error(w, "Couldn't get user", http.StatusBadRequest)
+		return
+	}
+
+	// 4. Verify email
+	if ok := services.ValidateEmail(params.Email); !ok {
+		http.Error(w, "Invalid email", http.StatusBadRequest)
+		return
+	}
+
+	// 5. Check if phone is set
+	pgPhone := pgtype.Text{
+		String: params.Phone,
+		Valid:  true,
+	}
+	if params.Phone == "" {
+		pgPhone.Valid = false
+	}
+
+	// 6. Update User
+	dbUser, err = config.APICfg.DBQueries.UpdateUserByID(r.Context(), database.UpdateUserByIDParams{
+		ID:        dbUser.ID,
+		Email:     params.Email,
+		FirstName: params.FirstName,
+		LastName:  params.LastName,
+		Phone:     pgPhone,
+	})
+	if err != nil {
+		http.Error(w, "Couldn't update user", http.StatusInternalServerError)
+		return
+	}
+
+	// 7. Delete User Roles
+	err = config.APICfg.DBQueries.DeleteUserRoles(r.Context(), dbUser.ID)
+	if err != nil {
+		http.Error(w, "Couldn't delete user roles", http.StatusInternalServerError)
+		return
+	}
+
+	// 8. Add new user roles
+	newRoles := []string{}
+	for _, role := range params.Roles {
+		dbRole, err := config.APICfg.DBQueries.GetRoleByName(r.Context(), role)
+		if err != nil {
+			http.Error(w, "Couldn't retrieve roles", http.StatusInternalServerError)
+			return
+		}
+		dbUserRole, err := config.APICfg.DBQueries.CreateUserRoles(r.Context(), database.CreateUserRolesParams{
+			UserID: dbUser.ID,
+			RoleID: dbRole.ID,
+		})
+		if err != nil {
+			http.Error(w, "Couldn't create user role", http.StatusInternalServerError)
+			return
+		}
+		newRoles = append(newRoles, dbUserRole.RoleName)
+	}
+
+	// 9. Respond
+	RespondWithJSON(w, http.StatusOK, response{
+		User: models.User{
+			ID:        dbUser.ID.String(),
+			Email:     dbUser.Email,
+			FirstName: dbUser.FirstName,
+			LastName:  dbUser.LastName,
+			Phone:     dbUser.Phone,
+			IsActive:  dbUser.IsActive,
+			CreatedAt: dbUser.CreatedAt,
+			UpdatedAt: dbUser.UpdatedAt,
+			Roles:     newRoles,
 		},
 	})
 }

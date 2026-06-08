@@ -12,3 +12,7 @@ INNER JOIN roles ON roles.id = inserted_user_roles.role_id;
 SELECT roles.name FROM user_roles
 INNER JOIN roles ON roles.id = role_id
 WHERE user_id = $1;
+
+-- name: DeleteUserRoles :exec
+DELETE FROM user_roles
+WHERE user_id = $1;
