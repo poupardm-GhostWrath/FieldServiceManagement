@@ -39,33 +39,22 @@ func main() {
 
 	// Public Routes
 	r.Route("/auth", func(r chi.Router) {
-		r.Post("/login", handlers.Login)
-		r.Post("/register", handlers.RegisterUsers)
+		r.Post("/login", handlers.Login)            // Login User
+		r.Post("/register", handlers.RegisterUsers) // Register User
 	})
 
 	// Protected Routes
 	r.Group(func(r chi.Router) {
-		r.Use(middleware.AuthMiddleware())
-		r.With(middleware.RequireRole("admin", "dispatcher")).Get("/users", handlers.ListUsers)
-		r.Get("/users/me", handlers.GetUserProfile)
-		r.Put("/users/me", handlers.UpdateUserProfile)
-		r.With(middleware.RequireRole("admin", "dispatcher")).Get("/users/{userID}", handlers.GetUserDetails)
-		r.With(middleware.RequireRole("admin")).Post("/users", handlers.UserCreate)
-		r.With(middleware.RequireRole("admin")).Put("/users/{userID}", handlers.UpdateUser)
+		// User Management
+		r.Use(middleware.AuthMiddleware())                                                                    // Authentication
+		r.Get("/users/me", handlers.GetUserProfile)                                                           // Get Current User Profile
+		r.Put("/users/me", handlers.UpdateUserProfile)                                                        // Update Current User Profile
+		r.With(middleware.RequireRole("admin", "dispatcher")).Get("/users", handlers.ListUsers)               // List all users
+		r.With(middleware.RequireRole("admin", "dispatcher")).Get("/users/{userID}", handlers.GetUserDetails) // Get specific user details
+		r.With(middleware.RequireRole("admin")).Post("/users", handlers.UserCreate)                           // Create New User (Admin)
+		r.With(middleware.RequireRole("admin")).Put("/users/{userID}", handlers.UpdateUser)                   // Update User details/roles
+		r.With(middleware.RequireRole("admin")).Delete("/users/{userID}", handlers.DeleteUser)                // Delete User (Soft Delete)
 	})
-
-	// Authentication & Users
-	/*
-		mux.HandleFunc("POST /auth/register", apiCfg.handlerUsersRegister) 			// Public
-		mux.HandleFunc("POST /auth/login", apiCfg.handlerUsersLogin)						// Public
-		mux.HandleFunc("GET /users/me", apiCfg.handlerUsersProfileGet)					// All
-		mux.HandleFunc("PUT /users/me", apiCfg.handlerUsersProfileUpdate)				// All
-		mux.HandleFunc("GET /users", apiCfg.handlerUsersGet)										// Admin, Dispatcher
-		mux.HandleFunc("GET /users/{userID}, apiCfg.handlerUsersGetByID")				// Admin, Dispatcher
-		mux.HandleFunc("POST /users", apiCfg.handlerUsersCreate)								// Admin
-		mux.HandleFunc("PUT /users/{userID}", apiCfg.handlerUsersUpdateByID)		// Admin
-		mux.HandleFunc("DELETE /users/{userID}", apiCfg.handlerUsersDeleteByID)	// Admin (Soft delete)
-	*/
 
 	// Customers
 	/*

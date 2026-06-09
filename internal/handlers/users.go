@@ -562,3 +562,43 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 }
+
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	// 1. Fetch user id
+	userIDString := r.PathValue("userID")
+	userID, err := uuid.Parse(userIDString)
+	if err != nil {
+		http.Error(w, "Couldn't get user ID", http.StatusBadRequest)
+		return
+	}
+
+	// 2. Get user from DB
+	dbUser, err := config.APICfg.DBQueries.GetUserByID(r.Context(), userID)
+	if err != nil {
+		http.Error(w, "Couldn't get user", http.StatusInternalServerError)
+		return
+	}
+
+	// 3. Check if user already "deleted"
+	if !dbUser.IsActive.Bool {
+		http.Error(w, "User already deleted", http.StatusBadRequest)
+		return
+	}
+
+	// 4. Delete User From DB (Soft Delete)
+	err = config.APICfg.DBQueries.DeleteUserByID(r.Context(), userID)
+	if err != nil {
+		http.Error(w, "Couldn't delete user", http.StatusInternalServerError)
+		return
+	}
+
+	// 5. Delete User Roles
+	err = config.APICfg.DBQueries.DeleteUserRoles(r.Context(), userID)
+	if err != nil {
+		http.Error(w, "Couldn't delete user roles", http.StatusInternalServerError)
+		return
+	}
+
+	// 6. Respond
+	w.WriteHeader(http.StatusNoContent)
+}

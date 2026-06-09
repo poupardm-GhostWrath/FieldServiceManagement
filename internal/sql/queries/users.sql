@@ -25,3 +25,8 @@ UPDATE users
 SET email = $2, first_name = $3, last_name = $4, phone = $5, updated_at = NOW()
 WHERE id = $1
 RETURNING *;
+
+-- name: DeleteUserByID :exec
+UPDATE users
+SET is_active = false, updated_at = NOW()
+WHERE id = $1;
