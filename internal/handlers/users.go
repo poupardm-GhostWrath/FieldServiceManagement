@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/auth"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/config"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/database"
@@ -101,13 +100,7 @@ func RegisterUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Check if phone is set
-	pgPhone := pgtype.Text{
-		String: params.Phone,
-		Valid:  true,
-	}
-	if params.Phone == "" {
-		pgPhone.Valid = false
-	}
+	pgPhone := services.ValidatePhone(params.Phone)
 
 	// 5. Create DB User
 	dbUser, err := config.APICfg.DBQueries.CreateUser(r.Context(), database.CreateUserParams{
@@ -251,6 +244,7 @@ func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing Last Name", http.StatusBadRequest)
 		return
 	}
+	pgPhone := services.ValidatePhone(params.Phone)
 
 	// 5. Create new password hash
 	passwordHash, err := auth.HashPassword(params.Password)
@@ -273,10 +267,7 @@ func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 		PasswordHash: passwordHash,
 		FirstName:    params.FirstName,
 		LastName:     params.LastName,
-		Phone: pgtype.Text{
-			String: params.Phone,
-			Valid:  (params.Phone != ""),
-		},
+		Phone:        pgPhone,
 	})
 	if err != nil {
 		http.Error(w, "Couldn't update user", http.StatusInternalServerError)
@@ -394,13 +385,7 @@ func UserCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Check if phone is set
-	pgPhone := pgtype.Text{
-		String: params.Phone,
-		Valid:  true,
-	}
-	if params.Phone == "" {
-		pgPhone.Valid = false
-	}
+	pgPhone := services.ValidatePhone(params.Phone)
 
 	// 5. Get Roles
 	dbRoles := []database.Role{}
@@ -500,13 +485,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 5. Check if phone is set
-	pgPhone := pgtype.Text{
-		String: params.Phone,
-		Valid:  true,
-	}
-	if params.Phone == "" {
-		pgPhone.Valid = false
-	}
+	pgPhone := services.ValidatePhone(params.Phone)
 
 	// 6. Update User
 	dbUser, err = config.APICfg.DBQueries.UpdateUserByID(r.Context(), database.UpdateUserByIDParams{
