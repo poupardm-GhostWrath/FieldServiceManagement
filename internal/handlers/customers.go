@@ -31,6 +31,10 @@ func GetCustomers(w http.ResponseWriter, r *http.Request) {
 	// 2. Craft payload
 	customers := []models.Customer{}
 	for _, dbCustomer := range dbCustomers {
+		if dbCustomer.DeletedAt.Valid {
+			continue // Skip if deleted
+		}
+		userID := services.ValidateUserID(dbCustomer.UserID)
 		customers = append(customers, models.Customer{
 			ID:           dbCustomer.ID,
 			CompanyName:  dbCustomer.CompanyName,
@@ -44,11 +48,16 @@ func GetCustomers(w http.ResponseWriter, r *http.Request) {
 			PostalCode:   dbCustomer.PostalCode,
 			Country:      dbCustomer.Country,
 			Notes:        dbCustomer.Notes,
-			UserID:       dbCustomer.UserID.String(),
+			UserID:       userID,
 			CreatedAt:    dbCustomer.CreatedAt,
 			UpdatedAt:    dbCustomer.UpdatedAt,
 			DeletedAt:    dbCustomer.DeletedAt,
 		})
+	}
+
+	if len(customers) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
 	}
 
 	// 3. Respond
@@ -165,10 +174,16 @@ func GetCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Check User ID
+	// 3. Check if customer is deleted
+	if dbCustomer.DeletedAt.Valid {
+		http.Error(w, "Invalid customer", http.StatusBadRequest)
+		return
+	}
+
+	// 4. Check User ID
 	userID := services.ValidateUserID(dbCustomer.UserID)
 
-	// 4. Create payload
+	// 5. Create payload
 	customer := models.Customer{
 		ID:           dbCustomer.ID,
 		CompanyName:  dbCustomer.CompanyName,
@@ -190,8 +205,28 @@ func GetCustomer(w http.ResponseWriter, r *http.Request) {
 
 	// ADD: Jobs History
 
-	// 5. Respond
+	// 6. Respond
 	RespondWithJSON(w, http.StatusOK, response{
 		Customer: customer,
 	})
+}
+
+func DeleteCustomer(w http.ResponseWriter, r *http.Request) {
+	// 1. Fetch Customer ID
+	customerIDString := r.PathValue("customerID")
+	customerID, err := uuid.Parse(customerIDString)
+	if err != nil {
+		http.Error(w, "Couldn't parse customer ID", http.StatusBadRequest)
+		return
+	}
+
+	// 2. Delete Customer
+	err = config.APICfg.DBQueries.DeleteCustomer(r.Context(), customerID)
+	if err != nil {
+		http.Error(w, "Couldn't delete customer", http.StatusInternalServerError)
+		return
+	}
+
+	// 3. Respond
+	w.WriteHeader(http.StatusNoContent)
 }
