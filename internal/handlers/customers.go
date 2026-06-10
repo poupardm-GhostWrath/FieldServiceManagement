@@ -6,11 +6,27 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/config"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/database"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/models"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/services"
 )
+
+type customerParams struct {
+	CompanyName  pgtype.Text `json:"company_name"`
+	ContactName  string      `json:"contact_name"`
+	Email        string      `json:"email"`
+	Phone        string      `json:"phone"`
+	AddressLine1 string      `json:"address_line_1"`
+	AddressLine2 pgtype.Text `json:"address_line_2"`
+	City         string      `json:"city"`
+	Province     string      `json:"province"`
+	PostalCode   string      `json:"postal_code"`
+	Country      pgtype.Text `json:"country"`
+	Notes        pgtype.Text `json:"notes"`
+	UserID       *uuid.UUID  `json:"user_id"`
+}
 
 func GetCustomers(w http.ResponseWriter, r *http.Request) {
 	type response struct {
@@ -34,7 +50,6 @@ func GetCustomers(w http.ResponseWriter, r *http.Request) {
 		if dbCustomer.DeletedAt.Valid {
 			continue // Skip if deleted
 		}
-		userID := services.ValidateUserID(dbCustomer.UserID)
 		customers = append(customers, models.Customer{
 			ID:           dbCustomer.ID,
 			CompanyName:  dbCustomer.CompanyName,
@@ -48,7 +63,7 @@ func GetCustomers(w http.ResponseWriter, r *http.Request) {
 			PostalCode:   dbCustomer.PostalCode,
 			Country:      dbCustomer.Country,
 			Notes:        dbCustomer.Notes,
-			UserID:       userID,
+			UserID:       dbCustomer.UserID,
 			CreatedAt:    dbCustomer.CreatedAt,
 			UpdatedAt:    dbCustomer.UpdatedAt,
 			DeletedAt:    dbCustomer.DeletedAt,
@@ -67,26 +82,13 @@ func GetCustomers(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateCustomer(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		CompanyName  string `json:"company_name"`
-		ContactName  string `json:"contact_name"`
-		Email        string `json:"email"`
-		Phone        string `json:"phone"`
-		AddressLine1 string `json:"address_line_1"`
-		AddressLine2 string `json:"address_line_2"`
-		City         string `json:"city"`
-		Province     string `json:"province"`
-		PostalCode   string `json:"postal_code"`
-		Country      string `json:"country"`
-	}
-
 	type response struct {
 		Customer models.Customer `json:"customer"`
 	}
 
 	// 1. Decode parameters from Request
 	decoder := json.NewDecoder(r.Body)
-	params := parameters{}
+	params := customerParams{}
 	err := decoder.Decode(&params)
 	if err != nil {
 		http.Error(w, "Couldn't decode parameters", http.StatusBadRequest)
@@ -99,36 +101,33 @@ func CreateCustomer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid email", http.StatusBadRequest)
 		return
 	}
+	/*
+		// 3. Verify CompanyName Set
+		companyName := services.ValidateCompanyName(params.CompanyName)
 
-	// 3. Verify CompanyName Set
-	companyName := services.ValidateCompanyName(params.CompanyName)
+		// 4. Verify AddressLine2 Set
+		addressLine2 := services.ValidateAddressLine2(params.AddressLine2)
 
-	// 4. Verify AddressLine2 Set
-	addressLine2 := services.ValidateAddressLine2(params.AddressLine2)
-
-	// 5. Verify Country Set
-	country := services.ValidateCountry(params.Country)
-
+		// 5. Verify Country Set
+		country := services.ValidateCountry(params.Country)
+	*/
 	// 6. Create DB Customer
 	dbCustomer, err := config.APICfg.DBQueries.CreateCustomer(r.Context(), database.CreateCustomerParams{
-		CompanyName:  companyName,
+		CompanyName:  params.CompanyName,
 		ContactName:  params.ContactName,
 		Email:        params.Email,
 		Phone:        params.Phone,
 		AddressLine1: params.AddressLine1,
-		AddressLine2: addressLine2,
+		AddressLine2: params.AddressLine2,
 		City:         params.City,
 		Province:     params.Province,
 		PostalCode:   params.PostalCode,
-		Country:      country,
+		Country:      params.Country,
 	})
 	if err != nil {
 		http.Error(w, "Couldn't create customer", http.StatusInternalServerError)
 		return
 	}
-
-	// 7. Check UserID
-	userID := services.ValidateUserID(dbCustomer.UserID)
 
 	// 8. Respond
 	RespondWithJSON(w, http.StatusCreated, response{
@@ -145,7 +144,7 @@ func CreateCustomer(w http.ResponseWriter, r *http.Request) {
 			PostalCode:   dbCustomer.PostalCode,
 			Country:      dbCustomer.Country,
 			Notes:        dbCustomer.Notes,
-			UserID:       userID,
+			UserID:       dbCustomer.UserID,
 			CreatedAt:    dbCustomer.CreatedAt,
 			UpdatedAt:    dbCustomer.UpdatedAt,
 			DeletedAt:    dbCustomer.DeletedAt,
@@ -180,9 +179,6 @@ func GetCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 4. Check User ID
-	userID := services.ValidateUserID(dbCustomer.UserID)
-
 	// 5. Create payload
 	customer := models.Customer{
 		ID:           dbCustomer.ID,
@@ -197,7 +193,7 @@ func GetCustomer(w http.ResponseWriter, r *http.Request) {
 		PostalCode:   dbCustomer.PostalCode,
 		Country:      dbCustomer.Country,
 		Notes:        dbCustomer.Notes,
-		UserID:       userID,
+		UserID:       dbCustomer.UserID,
 		CreatedAt:    dbCustomer.CreatedAt,
 		UpdatedAt:    dbCustomer.UpdatedAt,
 		DeletedAt:    dbCustomer.DeletedAt,
@@ -229,4 +225,76 @@ func DeleteCustomer(w http.ResponseWriter, r *http.Request) {
 
 	// 3. Respond
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
+	type response struct {
+		Customer models.Customer `json:"customer"`
+	}
+	// 1. Fetch Customer ID
+	customerIDString := r.PathValue("customerID")
+	customerID, err := uuid.Parse(customerIDString)
+	if err != nil {
+		http.Error(w, "Couldn't retrieve customer ID", http.StatusBadRequest)
+		return
+	}
+
+	// 2. Decode Request
+	decoder := json.NewDecoder(r.Body)
+	params := customerParams{}
+	err = decoder.Decode(&params)
+	if err != nil {
+		http.Error(w, "Couldn't decode parameters", http.StatusBadRequest)
+		return
+	}
+
+	// 3. Verify data
+	ok := services.ValidateEmail(params.Email)
+	if !ok {
+		http.Error(w, "Invalid email", http.StatusBadRequest)
+		return
+	}
+
+	// 4. Update Customer
+	dbCustomer, err := config.APICfg.DBQueries.UpdateCustomer(r.Context(), database.UpdateCustomerParams{
+		ID:           customerID,
+		CompanyName:  params.CompanyName,
+		ContactName:  params.ContactName,
+		Email:        params.Email,
+		Phone:        params.Phone,
+		AddressLine1: params.AddressLine1,
+		AddressLine2: params.AddressLine2,
+		City:         params.City,
+		Province:     params.Province,
+		PostalCode:   params.PostalCode,
+		Country:      params.Country,
+		Notes:        params.Notes,
+		UserID:       params.UserID,
+	})
+	if err != nil {
+		http.Error(w, "Couldn't update customer", http.StatusInternalServerError)
+		return
+	}
+
+	// 5. Respond
+	RespondWithJSON(w, http.StatusOK, response{
+		Customer: models.Customer{
+			ID:           dbCustomer.ID,
+			CompanyName:  dbCustomer.CompanyName,
+			ContactName:  dbCustomer.ContactName,
+			Email:        dbCustomer.Email,
+			Phone:        dbCustomer.Phone,
+			AddressLine1: dbCustomer.AddressLine1,
+			AddressLine2: dbCustomer.AddressLine2,
+			City:         dbCustomer.City,
+			Province:     dbCustomer.Province,
+			PostalCode:   dbCustomer.PostalCode,
+			Country:      dbCustomer.Country,
+			Notes:        dbCustomer.Notes,
+			UserID:       dbCustomer.UserID,
+			CreatedAt:    dbCustomer.CreatedAt,
+			UpdatedAt:    dbCustomer.UpdatedAt,
+			DeletedAt:    dbCustomer.DeletedAt,
+		},
+	})
 }

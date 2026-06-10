@@ -61,6 +61,7 @@ func main() {
 		r.With(middleware.RequireRole("admin", "dispatcher", "technician")).Get("/customers/{customerID}", handlers.GetCustomer) // Get Customer details
 		r.With(middleware.RequireRole("admin", "dispatcher")).Post("/customers", handlers.CreateCustomer)                        // Create Customer
 		r.With(middleware.RequireRole("admin")).Delete("/customers/{customerID}", handlers.DeleteCustomer)                       // Delete customer
+		r.With(middleware.RequireRole("admin", "dispatcher")).Put("/customers/{customerID}", handlers.UpdateCustomer)            // Update Customer
 	})
 
 	// Customers
