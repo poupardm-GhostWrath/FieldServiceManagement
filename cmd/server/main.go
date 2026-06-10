@@ -45,8 +45,9 @@ func main() {
 
 	// Protected Routes
 	r.Group(func(r chi.Router) {
+		r.Use(middleware.AuthMiddleware()) // Authentication
+
 		// User Management
-		r.Use(middleware.AuthMiddleware())                                                                    // Authentication
 		r.Get("/users/me", handlers.GetUserProfile)                                                           // Get Current User Profile
 		r.Put("/users/me", handlers.UpdateUserProfile)                                                        // Update Current User Profile
 		r.With(middleware.RequireRole("admin", "dispatcher")).Get("/users", handlers.ListUsers)               // List all users
@@ -54,6 +55,9 @@ func main() {
 		r.With(middleware.RequireRole("admin")).Post("/users", handlers.UserCreate)                           // Create New User (Admin)
 		r.With(middleware.RequireRole("admin")).Put("/users/{userID}", handlers.UpdateUser)                   // Update User details/roles
 		r.With(middleware.RequireRole("admin")).Delete("/users/{userID}", handlers.DeleteUser)                // Delete User (Soft Delete)
+
+		// Customer Management
+		r.With(middleware.RequireRole("admin", "dispatcher", "technician")).Get("/customers", handlers.GetCustomers)
 	})
 
 	// Customers
