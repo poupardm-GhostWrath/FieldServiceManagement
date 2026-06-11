@@ -101,17 +101,8 @@ func CreateCustomer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid email", http.StatusBadRequest)
 		return
 	}
-	/*
-		// 3. Verify CompanyName Set
-		companyName := services.ValidateCompanyName(params.CompanyName)
 
-		// 4. Verify AddressLine2 Set
-		addressLine2 := services.ValidateAddressLine2(params.AddressLine2)
-
-		// 5. Verify Country Set
-		country := services.ValidateCountry(params.Country)
-	*/
-	// 6. Create DB Customer
+	// 3. Create DB Customer
 	dbCustomer, err := config.APICfg.DBQueries.CreateCustomer(r.Context(), database.CreateCustomerParams{
 		CompanyName:  params.CompanyName,
 		ContactName:  params.ContactName,
@@ -129,7 +120,7 @@ func CreateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 8. Respond
+	// 4. Respond
 	RespondWithJSON(w, http.StatusCreated, response{
 		Customer: models.Customer{
 			ID:           dbCustomer.ID,
@@ -255,7 +246,28 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 4. Update Customer
+	/*
+		// 4. Get User if userID set
+		var userIDPtr *uuid.UUID
+		userIDPtr = nil
+		if params.UserID != "" {
+			userID, err := uuid.Parse(params.UserID)
+			if err != nil {
+				http.Error(w, "Couldn't parse user ID", http.StatusBadRequest)
+				return
+			}
+
+			dbUser, err := config.APICfg.DBQueries.GetUserByID(r.Context(), userID)
+			if err != nil {
+				http.Error(w, "Couldn't retrieve user", http.StatusInternalServerError)
+				return
+			}
+
+			dbUserID := dbUser.ID
+			userIDPtr = &dbUserID
+		}*/
+
+	// 5. Update Customer
 	dbCustomer, err := config.APICfg.DBQueries.UpdateCustomer(r.Context(), database.UpdateCustomerParams{
 		ID:           customerID,
 		CompanyName:  params.CompanyName,

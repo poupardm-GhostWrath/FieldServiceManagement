@@ -19,7 +19,7 @@ type Customer struct {
 	PostalCode   string             `json:"postal_code"`
 	Country      pgtype.Text        `json:"country"`
 	Notes        pgtype.Text        `json:"notes"`
-	UserID       *uuid.UUID         `json:"userID"`
+	UserID       *uuid.UUID         `json:"user_id"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 	DeletedAt    pgtype.Timestamptz `json:"deleted_at"`
