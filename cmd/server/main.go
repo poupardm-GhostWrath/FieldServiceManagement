@@ -62,6 +62,10 @@ func main() {
 		r.With(middleware.RequireRole("admin", "dispatcher")).Post("/customers", handlers.CreateCustomer)                        // Create Customer
 		r.With(middleware.RequireRole("admin")).Delete("/customers/{customerID}", handlers.DeleteCustomer)                       // Delete customer
 		r.With(middleware.RequireRole("admin", "dispatcher")).Put("/customers/{customerID}", handlers.UpdateCustomer)            // Update Customer
+
+		// Inventory Management
+		r.With(middleware.RequireRole("admin", "dispatcher")).Post("/inventory", handlers.CreateInventoryItem)       // Create Inventory Item
+		r.With(middleware.RequireRole("admin", "dispatcher", "technician")).Get("/inventory", handlers.GetInventory) // Get Inventory
 	})
 
 	// Customers
