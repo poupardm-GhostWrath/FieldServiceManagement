@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/config"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/handlers"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/middleware"
@@ -35,17 +36,18 @@ func main() {
 	r.Use(chimiddleware.Timeout(60 * time.Second))
 
 	// Initial Entrypoint
-	r.Handle("/", http.FileServer(http.Dir(filepathRoot)))
+	r.Handle("/*", http.FileServer(http.Dir(filepathRoot)))
 
 	// Public Routes
 	r.Route("/auth", func(r chi.Router) {
-		r.Post("/login", handlers.Login)            // Login User
-		r.Post("/register", handlers.RegisterUsers) // Register User
+		r.With(httprate.LimitByIP(5, 1*time.Minute)).Post("/login", handlers.Login)          // Login User (5 req/min limit)
+		r.With(httprate.LimitByIP(3, 1*time.Hour)).Post("/register", handlers.RegisterUsers) // Register User (3 req/hour limit)
 	})
 
 	// Protected Routes
 	r.Group(func(r chi.Router) {
-		r.Use(middleware.AuthMiddleware()) // Authentication
+		r.Use(middleware.AuthMiddleware())            // Authentication
+		r.Use(httprate.LimitByIP(120, 1*time.Minute)) // 120 req/min limit
 
 		// User Management
 		r.Get("/users/me", handlers.GetUserProfile)                                                           // Get Current User Profile
@@ -60,7 +62,7 @@ func main() {
 		r.With(middleware.RequireRole("admin", "dispatcher", "technician")).Get("/customers", handlers.GetCustomers)             // List Customers
 		r.With(middleware.RequireRole("admin", "dispatcher", "technician")).Get("/customers/{customerID}", handlers.GetCustomer) // Get Customer details
 		r.With(middleware.RequireRole("admin", "dispatcher")).Post("/customers", handlers.CreateCustomer)                        // Create Customer
-		r.With(middleware.RequireRole("admin")).Delete("/customers/{customerID}", handlers.DeleteCustomer)                       // Delete customer
+		r.With(middleware.RequireRole("admin")).Delete("/customers/{customerID}", handlers.DeleteCustomer)                       // Delete customer (soft delete)
 		r.With(middleware.RequireRole("admin", "dispatcher")).Put("/customers/{customerID}", handlers.UpdateCustomer)            // Update Customer
 
 		// Inventory Management
