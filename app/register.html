@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | Service Management</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="login-wrapper">
+      <!-- Left Side: Branding -->
+      <div class="login-branding" style="background: linear-gradient(135deg, #4dacfe 0%, #00f2fe 100%);">
+        <div class="brand-content">
+          <h1 class="brand-title">Sign Up</h1>
+          <p class="brand-tagline">Create your account</p>
+        </div>
+      </div>
+
+      <!-- Right Side: Form -->
+      <div class="login-form-container">
+        <div class="form-card">
+          <h2>Create Account</h2>
+          <p class="form-subtitle">Fill in your details to get started</p>
+
+          <form id="registerForm" novalidate>
+            <!-- First Name -->
+            <div class="form-group">
+              <input
+                type="text"
+                id="firstName"
+                name="first_name"
+                required
+                autocomplete="given-name"
+                placeholder="First Name *"
+              >
+              <span class="error-message" id="firstNameError"></span>
+            </div>
+
+            <!-- Last Name -->
+            <div class="form-group">
+              <input
+                type="text"
+                id="lastName"
+                name="last_name"
+                required
+                autocomplete="family-name"
+                placeholder="Last Name *"
+              >
+              <span class="error-message" id="lastNameError"></span>
+            </div>
+            
+            <!-- Phone -->
+            <div class="form-group">
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                autocomplete="tel"
+                placeholder="Phone Number"
+              >
+              <span class="error-message" id="phoneError"></span>
+            </div>
+
+            <!-- Email Field -->
+            <div class="form-group">
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                autocomplete="email"
+                placeholder="Email Address *"
+              >
+              <span class="error-message" id="emailError"></span>
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group">
+              <div class="password-input-wrapper">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  required
+                  minlength="12"
+                  autocomplete="new-password"
+                  placeholder="Password *"
+                  pattern="^[A-Za-z0-9@$!%*?&]{12,64}$"
+                >
+                <button type="button" class="toggle-password" aria-label="Toggle password visibility">👁️</button>
+              </div>
+              <span class="error-message" id="passwordError"></span>
+              
+              <!-- Visual Requirement Checklist -->
+              <ul class="req-list" id="passwordRequirements">
+                <li id="req-length"><strong>Length:</strong> 12 to 64 characters</li>
+                <li id="req-chars"><strong>Characters:</strong> Letters, numbers, and @ $ ! % * ? & only</li>
+              </ul>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group">
+              <div class="password-input-wrapper">
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  required
+                  autocomplete="new-password"
+                  placeholder="Confirm Password *"
+                >
+                <button type="button" class="toggle-password" aria-label="Toggle password visibility">👁️</button>
+              </div>
+              <span class="error-message" id="confirmPasswordError"></span>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+              <span class="btn-text">Sign Up</span>
+              <span class="btn-loader" style="display: none;">Signing up...</span>
+            </button>
+          </form>
+
+          <!-- Login Link -->
+          <p class="signup-prompt">
+            Already have an account? <a href="index.html">Sign in</a>
+          </p>
+
+          <!-- Error Alert -->
+          <div class="alert alert-error" id="apiError" style="display: none;">
+            <span class="alert-icon">⚠️</span>
+            <span class="alert-message"></span>
+          </div>
+
+          <!-- Success Alert -->
+          <div class="alert alert-success" id="successMsg" style="display: none;">
+            <span class="alert-icon">✅</span>
+            <span class="alert-message">Account created! Redirecting...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="register.js"></script>
+  </body>
+</html>
