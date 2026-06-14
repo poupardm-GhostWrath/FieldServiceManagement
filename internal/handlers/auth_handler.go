@@ -9,7 +9,6 @@ import (
 	"github.com/alexedwards/argon2id"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/auth"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/config"
-	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/models"
 )
 
 type LoginRequest struct {
@@ -18,64 +17,52 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token string      `json:"token"`
-	User  models.User `json:"user"`
+	Token string `json:"token"`
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		RespondWithError(w, http.StatusBadRequest, "Couldn't decode request", err)
 		return
 	}
 
 	// 1. Fetch user from DB
 	dbUser, err := config.APICfg.DBQueries.GetUserByEmail(r.Context(), req.Email)
 	if err != nil {
-		http.Error(w, "User not found", http.StatusUnauthorized)
+		RespondWithError(w, http.StatusBadRequest, "User not found", err)
 		return
 	}
 
 	// 2. Verify Password
 	match, err := argon2id.ComparePasswordAndHash(req.Password, dbUser.PasswordHash)
 	if err != nil || !match {
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		RespondWithError(w, http.StatusBadRequest, "Invalid credentials", err)
 		return
 	}
 
 	// 3. Get User Roles
 	roles, err := config.APICfg.DBQueries.GetUserRoles(r.Context(), dbUser.ID)
 	if err != nil {
-		http.Error(w, "Failed to load roles", http.StatusInternalServerError)
+		RespondWithError(w, http.StatusInternalServerError, "Couldn't retrieve user roles", err)
 		return
 	}
 
 	// 4. Generate Token
 	secretKey := []byte(os.Getenv("JWT_SECRET"))
 	if len(secretKey) == 0 {
-		http.Error(w, "Server configuration error", http.StatusInternalServerError)
+		RespondWithError(w, http.StatusInternalServerError, "Server configuration error", nil)
 		return
 	}
 
 	tokenString, err := auth.GenerateToken(dbUser.ID.String(), dbUser.Email, roles, secretKey)
 	if err != nil {
-		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		RespondWithError(w, http.StatusInternalServerError, "Failed to generate token", err)
 		return
 	}
 
 	// 5. Send Response
 	RespondWithJSON(w, http.StatusOK, LoginResponse{
 		Token: tokenString,
-		User: models.User{
-			ID:        dbUser.ID.String(),
-			Email:     dbUser.Email,
-			FirstName: dbUser.FirstName,
-			LastName:  dbUser.LastName,
-			Phone:     dbUser.Phone,
-			IsActive:  dbUser.IsActive,
-			CreatedAt: dbUser.CreatedAt,
-			UpdatedAt: dbUser.UpdatedAt,
-			Roles:     roles,
-		},
 	})
 }
