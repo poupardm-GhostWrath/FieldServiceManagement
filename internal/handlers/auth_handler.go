@@ -9,6 +9,7 @@ import (
 	"github.com/alexedwards/argon2id"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/auth"
 	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/config"
+	"github.com/poupardm-GhostWrath/FieldServiceManagement/internal/models"
 )
 
 type LoginRequest struct {
@@ -17,7 +18,8 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
+	Token string      `json:"token"`
+	User  models.User `json:"user"`
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -64,5 +66,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	// 5. Send Response
 	RespondWithJSON(w, http.StatusOK, LoginResponse{
 		Token: tokenString,
+		User: models.User{
+			ID:        dbUser.ID,
+			Email:     dbUser.Email,
+			FirstName: dbUser.FirstName,
+			LastName:  dbUser.LastName,
+			Roles:     roles,
+		},
 	})
 }

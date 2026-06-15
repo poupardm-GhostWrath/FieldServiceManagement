@@ -1,0 +1,86 @@
+<!-- register.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Account</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/forms.css"
+</head>
+<body>
+    <!-- Navbar (Reusing previous style) -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <div class="logo"><span class="logo-icon">🏢</span><span class="logo-text">Your Company</span></div>
+            <div class="nav-actions"><a href="/" class="nav-link">Home</a><a href="/login.html" class="nav-link">Login</a></div>
+        </div>
+    </nav>
+
+    <section class="login-wrapper">
+        <div class="form-container">
+            <div class="form-header">
+                <h2>Create Customer Account</h2>
+                <p>Join us to manage your jobs and invoices</p>
+            </div>
+
+            <form id="registerForm" novalidate>
+                <!-- First Name -->
+                <div class="form-group">
+                    <label class="form-label" for="firstName">First Name<span class="required-marker">*</span></label>
+                    <input type="text" id="firstName" name="firstName" class="form-input" required>
+                    <div class="error-message" id="error-firstName"></div>
+                </div>
+
+                <!-- Last Name -->
+                <div class="form-group">
+                    <label class="form-label" for="lastName">Last Name<span class="required-marker">*</span></label>
+                    <input type="text" id="lastName" name="lastName" class="form-input" required>
+                    <div class="error-message" id="error-lastName"></div>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address<span class="required-marker">*</span></label>
+                    <input type="email" id="email" name="email" class="form-input" required>
+                    <div class="error-message" id="error-email"></div>
+                    <div class="success-message" id="success-email">Looks good!</div>
+                </div>
+
+                <!-- Phone (Optional) -->
+                <div class="form-group">
+                    <label class="form-label" for="phone">Phone Number <span style="color:#888; font-weight:normal;">(Optional)</span></label>
+                    <input type="tel" id="phone" name="phone" class="form-input">
+                    <div class="error-message" id="error-phone"></div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label class="form-label" for="password">Password<span class="required-marker">*</span></label>
+                    <input type="password" id="password" name="password" class="form-input" required>
+                    <div class="error-message" id="error-password"></div>
+                    <div class="success-message" id="success-password">Strong password!</div>
+                    
+                    <!-- Password Requirements Hint -->
+                    <div style="margin-top: 10px; font-size: 0.85rem; color: #666; background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                        <strong>Password Requirements:</strong>
+                        <ul style="margin-left: 20px; margin-top: 5px;">
+                            <li>At least 12 characters long</li>
+                            <li>Contains uppercase & lowercase letters</li>
+                            <li>Contains at least one digit</li>
+                            <li>Contains a special character (@$!%*?&)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">Create Account</button>
+            </form>
+
+            <div class="back-link">
+                Already have an account? <a href="/login.html">Login here</a>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/register.js"></script>
+</body>
+</html>

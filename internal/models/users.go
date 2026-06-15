@@ -13,7 +13,7 @@ type UserRole struct {
 }
 
 type User struct {
-	ID        string             `json:"id"`
+	ID        uuid.UUID          `json:"id"`
 	Email     string             `json:"email"`
 	FirstName string             `json:"first_name"`
 	LastName  string             `json:"last_name"`

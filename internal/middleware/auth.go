@@ -69,7 +69,7 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 			}
 
 			user := models.User{
-				ID:    dbUser.ID.String(),
+				ID:    dbUser.ID,
 				Email: dbUser.Email,
 				Roles: dbUserRole,
 			}

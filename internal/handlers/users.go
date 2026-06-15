@@ -37,7 +37,7 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to retrieve user roles", http.StatusInternalServerError)
 		}
 		user := models.User{
-			ID:        dbUser.ID.String(),
+			ID:        dbUser.ID,
 			Email:     dbUser.Email,
 			FirstName: dbUser.FirstName,
 			LastName:  dbUser.LastName,
@@ -128,7 +128,7 @@ func RegisterUsers(w http.ResponseWriter, r *http.Request) {
 	// 7. Respond
 	RespondWithJSON(w, http.StatusCreated, response{
 		User: models.User{
-			ID:        dbUser.ID.String(),
+			ID:        dbUser.ID,
 			Email:     dbUser.Email,
 			FirstName: dbUser.FirstName,
 			LastName:  dbUser.LastName,
@@ -177,7 +177,7 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 	// 5. Respond
 	RespondWithJSON(w, http.StatusOK, response{
 		User: models.User{
-			ID:        dbUser.ID.String(),
+			ID:        dbUser.ID,
 			Email:     dbUser.Email,
 			FirstName: dbUser.FirstName,
 			LastName:  dbUser.LastName,
@@ -292,7 +292,7 @@ func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, response{
 		Token: token,
 		User: models.User{
-			ID:        dbUserUpdated.ID.String(),
+			ID:        dbUserUpdated.ID,
 			Email:     dbUserUpdated.Email,
 			FirstName: dbUserUpdated.FirstName,
 			LastName:  dbUserUpdated.LastName,
@@ -335,7 +335,7 @@ func GetUserDetails(w http.ResponseWriter, r *http.Request) {
 	// 3. Respond
 	RespondWithJSON(w, http.StatusOK, response{
 		User: models.User{
-			ID:        dbUser.ID.String(),
+			ID:        dbUser.ID,
 			Email:     dbUser.Email,
 			FirstName: dbUser.FirstName,
 			LastName:  dbUser.LastName,
@@ -428,7 +428,7 @@ func UserCreate(w http.ResponseWriter, r *http.Request) {
 	// 8. Respond
 	RespondWithJSON(w, http.StatusCreated, response{
 		User: models.User{
-			ID:        dbUser.ID.String(),
+			ID:        dbUser.ID,
 			Email:     dbUser.Email,
 			FirstName: dbUser.FirstName,
 			LastName:  dbUser.LastName,
@@ -529,7 +529,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// 9. Respond
 	RespondWithJSON(w, http.StatusOK, response{
 		User: models.User{
-			ID:        dbUser.ID.String(),
+			ID:        dbUser.ID,
 			Email:     dbUser.Email,
 			FirstName: dbUser.FirstName,
 			LastName:  dbUser.LastName,
