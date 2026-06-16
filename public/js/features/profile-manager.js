@@ -108,10 +108,10 @@ document.getElementById('profile-form').addEventListener('submit', async functio
             // Update Local Storage immediately
             const newName = `${firstName} ${lastName}`;
             localStorage.setItem('user_name', newName);
+            localStorage.setItem('token', result.token)
             
-            // Update Navbar
-            document.getElementById('user-name-display').textContent = newName;
-            document.getElementById('header-name').textContent = newName;
+            document.getElementById('miniUserName').textContent = newName;
+            document.getElementById('welcomeName').textContent = newName;
             
             showMessage("Profile updated successfully!", "success");
             setTimeout(closeProfileModal, 1500);

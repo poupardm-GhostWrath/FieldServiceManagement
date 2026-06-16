@@ -192,7 +192,6 @@ func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 
 func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Email     string `json:"email"`
 		Password  string `json:"password"`
 		FirstName string `json:"first_name"`
 		LastName  string `json:"last_name"`
@@ -228,14 +227,6 @@ func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Check for invalid data
-	if valid := services.ValidateEmail(params.Email); !valid {
-		http.Error(w, "Invalid email", http.StatusBadRequest)
-		return
-	}
-	if err := services.ValidatePassword(params.Password); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 	if params.FirstName == "" {
 		http.Error(w, "Missing First Name", http.StatusBadRequest)
 		return
@@ -246,24 +237,33 @@ func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	}
 	pgPhone := services.ValidatePhone(params.Phone)
 
-	// 5. Create new password hash
-	passwordHash, err := auth.HashPassword(params.Password)
-	if err != nil {
-		http.Error(w, "Couldn't generate hash", http.StatusInternalServerError)
-		return
-	}
-
-	// 6. Get User From DB
+	// 5. Get User From DB
 	dbUser, err := config.APICfg.DBQueries.GetUserByID(r.Context(), userID)
 	if err != nil {
 		http.Error(w, "Couldn't retrieve user", http.StatusInternalServerError)
 		return
 	}
 
+	// 6. Check if password needs to change
+	passwordHash := dbUser.PasswordHash
+	if params.Password != "" {
+		// Check if password is valid
+		if err := services.ValidatePassword(params.Password); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// Create new password hash
+		passwordHash, err = auth.HashPassword(params.Password)
+		if err != nil {
+			http.Error(w, "Couldn't generate hash", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	// 7. Update User
 	dbUserUpdated, err := config.APICfg.DBQueries.UpdateUserProfileByID(r.Context(), database.UpdateUserProfileByIDParams{
 		ID:           dbUser.ID,
-		Email:        params.Email,
 		PasswordHash: passwordHash,
 		FirstName:    params.FirstName,
 		LastName:     params.LastName,

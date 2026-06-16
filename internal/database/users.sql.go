@@ -178,14 +178,13 @@ func (q *Queries) UpdateUserByID(ctx context.Context, arg UpdateUserByIDParams) 
 
 const updateUserProfileByID = `-- name: UpdateUserProfileByID :one
 UPDATE users
-SET email = $2, password_hash = $3, first_name = $4, last_name = $5, phone = $6, updated_at = NOW()
+SET password_hash = $2, first_name = $3, last_name = $4, phone = $5, updated_at = NOW()
 WHERE id = $1
 RETURNING id, email, password_hash, first_name, last_name, phone, is_active, created_at, updated_at
 `
 
 type UpdateUserProfileByIDParams struct {
 	ID           uuid.UUID
-	Email        string
 	PasswordHash string
 	FirstName    string
 	LastName     string
@@ -195,7 +194,6 @@ type UpdateUserProfileByIDParams struct {
 func (q *Queries) UpdateUserProfileByID(ctx context.Context, arg UpdateUserProfileByIDParams) (User, error) {
 	row := q.db.QueryRow(ctx, updateUserProfileByID,
 		arg.ID,
-		arg.Email,
 		arg.PasswordHash,
 		arg.FirstName,
 		arg.LastName,

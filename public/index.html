@@ -1,49 +1,64 @@
-<!-- index.html - Public Landing Page (Desktop Only) -->
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Service Manager</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Service Portal</title>
+    
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
     <!-- Top Navigation Bar -->
     <nav class="navbar">
-        <div class="container navbar-content">
+        <div class="navbar-content">
             <div class="logo">
-                <span class="logo-icon">🏢</span>
+                <i class="fa-solid fa-building logo-icon-fa"></i>
                 <span class="logo-text">Your Company</span>
+            </div>
+            <div class="nav-links">
+                <a href="/login.html" class="nav-link">Login</a>
+                <a href="/register.html" class="nav-link">Register</a>
             </div>
         </div>
     </nav>
 
     <!-- Main Hero Section -->
-    <section class="hero">
-        <div class="container hero-content">
+    <section class="hero-section">
+        <div class="hero-content">
             <div class="hero-text">
-                <h1>Welcome to Service Manager</h1>
+                <h1>Welcome to Your Service Hub</h1>
                 <p class="hero-subtitle">Manage your appointments, view job history, and download invoices all in one place.</p>
                 <p class="hero-description">Secure, streamlined, and built for efficiency.</p>
             </div>
             
             <div class="hero-actions">
-                <!-- Single Login Button -->
+                <!-- Login Card -->
                 <div class="action-card login-card">
-                    <div class="card-icon">🔐</div>
+                    <div class="card-icon-wrapper"><i class="fa-solid fa-lock"></i></div>
                     <h3>Login to Access Your Account</h3>
-                    <button id="loginBtn" class="btn btn-primary btn-large">
+                    <button onclick="window.location.href='/login.html'" class="btn btn-login">
                         Login
                     </button>
                 </div>
                 
-                <!-- Registration Card -->
+                <!-- Register Card -->
                 <div class="action-card register-card">
-                    <div class="card-icon">📝</div>
+                    <div class="card-icon-wrapper"><i class="fa-solid fa-user-pen"></i></div>
                     <h3>Create New Customer Account</h3>
-                    <button id="registerBtn" class="btn btn-secondary btn-large">
+                    <button onclick="window.location.href='/register.html'" class="btn btn-register">
                         Register
                     </button>
                 </div>
+            </div>
+
+            <!-- Staff Info -->
+            <div class="staff-info">
+                <p><strong>Staff Members:</strong> Your portal will open automatically after login!</p>
             </div>
         </div>
     </section>
@@ -59,8 +74,5 @@
             </div>
         </div>
     </footer>
-
-    <!-- JavaScript for Interactions -->
-    <script src="js/app.js"></script>
 </body>
 </html>

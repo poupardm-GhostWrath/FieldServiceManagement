@@ -16,7 +16,7 @@ SELECT * FROM users;
 
 -- name: UpdateUserProfileByID :one
 UPDATE users
-SET email = $2, password_hash = $3, first_name = $4, last_name = $5, phone = $6, updated_at = NOW()
+SET password_hash = $2, first_name = $3, last_name = $4, phone = $5, updated_at = NOW()
 WHERE id = $1
 RETURNING *;
 

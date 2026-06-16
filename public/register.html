@@ -3,15 +3,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/forms.css"
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/forms.css">
 </head>
 <body>
     <!-- Navbar (Reusing previous style) -->
     <nav class="navbar">
         <div class="container navbar-content">
-            <div class="logo"><span class="logo-icon">🏢</span><span class="logo-text">Your Company</span></div>
+            <div class="logo">
+                <i class="fa-solid fa-building logo-icon-fa"></i>
+                <span class="logo-text">Your Company</span></div>
             <div class="nav-actions"><a href="/" class="nav-link">Home</a><a href="/login.html" class="nav-link">Login</a></div>
         </div>
     </nav>
@@ -81,6 +89,18 @@
         </div>
     </section>
 
-    <script src="js/register.js"></script>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Your Company. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">Support</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="/js/register.js"></script>
 </body>
 </html>

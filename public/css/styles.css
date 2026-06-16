@@ -1,6 +1,8 @@
-/* styles.css - Desktop-Only Design */
+/* =========================================
+   public/styles.css
+   ========================================= */
 
-/* Reset & Base Styles */
+/* 1. Global Resets & Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -8,12 +10,14 @@
 }
 
 body {
+    margin: 0;
+    padding-top: 80px;
+    padding-bottom: 60px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: #333;
-    background-color: #f5f5f7;
-    /* Desktop only - min-width enforced */
-    min-width: 1280px;
+    background-color: #f5f7fa;
+    min-width: 1280px; /* Desktop only constraint */
 }
 
 .container {
@@ -22,32 +26,38 @@ body {
     padding: 0 40px;
 }
 
-/* Navbar Styles */
+/* 2. Fixed Navbar */
 .navbar {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    height: 80px;
     position: fixed;
     top: 0;
+    left: 0;
     width: 100%;
+    height: 80px;
     z-index: 1000;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .navbar-content {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* Left: Logo, Right: Nav Links */
     align-items: center;
     height: 100%;
+    padding: 0 40px;
+    max-width: 100%;
 }
 
+/* Logo - Pinned Left */
 .logo {
     display: flex;
     align-items: center;
     gap: 15px;
+    flex-shrink: 0;
 }
 
-.logo-icon {
+.logo-icon-fa {
     font-size: 2rem;
+    color: white;
 }
 
 .logo-text {
@@ -55,9 +65,11 @@ body {
     font-size: 1.5rem;
     font-weight: bold;
     letter-spacing: 1px;
+    white-space: nowrap;
 }
 
-.nav-actions {
+/* Navigation Links - Pinned Right */
+.nav-links {
     display: flex;
     gap: 30px;
 }
@@ -77,21 +89,26 @@ body {
     transform: translateY(-2px);
 }
 
-/* Hero Section */
-.hero {
+/* 3. Hero Section (Landing Page) */
+.hero-section {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: calc(100vh - 80px);
-    padding-top: 80px;
+    min-height: calc(100vh - 80px - 60px);
+    color: white;
+    padding-top: 60px; /* Account for fixed navbar */
+    padding-bottom: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .hero-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 60px 40px;
     display: flex;
     flex-direction: column;
     gap: 60px;
-    padding: 60px 0;
+    width: 100%;
 }
 
 .hero-text {
@@ -119,7 +136,7 @@ body {
     font-style: italic;
 }
 
-/* Action Cards */
+/* 4. Action Cards (Login & Register) */
 .hero-actions {
     display: flex;
     justify-content: center;
@@ -144,15 +161,21 @@ body {
 }
 
 .card-icon {
-    font-size: 3rem;
+    font-size: 2.5rem;
     margin-bottom: 20px;
 }
 
+.card-icon-wrapper {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #667eea; 
+}
+
 .action-card h3 {
-    color: #1a1a2e;
-    font-size: 1.5rem;
     margin-bottom: 15px;
     font-weight: 600;
+    color: #1a1a2e;
+    font-size: 1.5rem;
 }
 
 .card-description {
@@ -162,7 +185,20 @@ body {
     line-height: 1.6;
 }
 
-/* Buttons */
+.role-info {
+    background: rgba(102, 126, 234, 0.15);
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    margin-top: 15px;
+    display: inline-block;
+    color: #667eea;
+}
+
+.login-card .card-icon-wrapper i { color: #11998e; }
+.register-card .card-icon-wrapper i { color: #667eea; }
+
+/* 5. Buttons */
 .btn {
     padding: 16px 40px;
     border: none;
@@ -173,8 +209,16 @@ body {
     transition: all 0.3s ease;
 }
 
-.btn-large {
-    width: 100%;
+.btn-login {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    width: 200px;
+}
+
+.btn-register {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    width: 200px;
 }
 
 .btn-primary {
@@ -199,17 +243,70 @@ body {
     box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4);
 }
 
-/* Footer */
+/* 6. Centered Actions (Alternative Layout) */
+.centered-actions {
+    display: flex;
+    gap: 2rem;
+    margin-top: 3rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.login-section, .register-section {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    min-width: 280px;
+}
+
+.helper-text {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* 7. Staff Info Section */
+.staff-info {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.staff-info p {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* 8. Footer */
 .footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
     background: #1a1a2e;
     color: white;
-    padding: 30px 0;
+    display: flex;
+    align-items: cneter;
+    z-index: 900;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .footer-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 40px;
+    height: 100%;
 }
 
 .footer-links {
@@ -227,12 +324,16 @@ body {
     color: white;
 }
 
-/* Role Info Text */
-.role-info {
-    background: rgba(255, 255, 255, 0.15);
-    padding: 8px 15px;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    margin-top: 15px;
-    display: inline-block;
+/* 9. Utility Classes */
+.text-center {
+    text-align: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
 }

@@ -5,147 +5,361 @@
     <meta charset="UTF-8">
     <title>My Account - Service Portal</title>
     
-    <!-- Shared Layout Styles -->
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/dashboard-layout.css">
     <link rel="stylesheet" href="/css/forms.css">
+    <link rel="stylesheet" href="/css/dashboard-layout.css">
 </head>
 <body>
-    <!-- Navbar (Shared across all dashboards) -->
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading your dashboard...</p>
+    </div>
+
+    <!-- 1. NAVBAR (Fixed Top) -->
     <nav class="navbar">
-        <div class="container navbar-content">
-            <div class="logo">
-                <span class="logo-icon">🏢</span>
-                <span class="logo-text">Your Company</span>
-            </div>
-            <div class="nav-user-info">
-                <span id="user-name-display" style="cursor: pointer; text-decoration: underline;">Loading...</span>
-                <div id="profile-modal" class="modal-overlay" style="display: none;">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>Edit Profile</h2>
-                        <span class="close-modal" onclick="closeProfileModal()">&times;</span>
-                    </div>
-                    
-                    <form id="profile-form">
-                        <!-- Read Only: Email -->
-                        <div class="form-group">
-                            <label class="form-label">Email Address</label>
-                            <input type="email" id="profile-email" class="form-input" disabled title="Email cannot be changed">
-                            <small style="color: #888;">Contact support to change email.</small>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">First Name<span class="required-marker">*</span></label>
-                                <input type="text" id="profile-first-name" class="form-input" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Last Name<span class="required-marker">*</span></label>
-                                <input type="text" id="profile-last-name" class="form-input" required>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Phone Number</label>
-                            <input type="tel" id="profile-phone" class="form-input">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">New Password (Leave blank to keep current)</label>
-                            <input type="password" id="profile-password" class="form-input" placeholder="********">
-                        </div>
-
-                        <div class="modal-actions">
-                            <button type="button" onclick="closeProfileModal()" class="btn btn-secondary">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                        </div>
-                    </form>
-                    
-                    <div id="profile-message" class="alert" style="display:none; margin-top:10px;"></div>
-                  </div>
-
-                </div>
-                <button id="logout-btn" class="btn-logout">Logout</button>
-            </div>
+        <div class="logo">
+            <i class="fa-solid fa-building logo-icon-fa"></i>
+            <span class="logo-text">Your Company</span>
+        </div>
+        <div class="nav-user-info">
+            <button id="logout-btn" class="btn-logout">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
         </div>
     </nav>
 
-    <div class="dashboard-wrapper">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>Customer Portal</h2>
+    <!-- 2. SIDEBAR (Left Column) -->
+    <aside class="sidebar" id="sidebar">
+        <!-- Modern Toggle Button -->
+        <div class="sidebar-toggle-container">
+            <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-chevron-left toggle-icon"></i>
+            </button>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav id="sidebar-menu">
+            <!-- Role-based links (data-role attribute controls visibility via JS) -->
+            <a href="#" class="sidebar-link active" data-role="customer">
+                <i class="fa-solid fa-gauge-high icon"></i>
+                <span class="link-text">Dashboard</span>
+            </a>
+            <a href="#jobs-section" class="sidebar-link" data-role="customer">
+                <i class="fa-solid fa-wrench icon"></i>
+                <span class="link-text">Job History</span>
+            </a>
+            <a href="#invoices-section" class="sidebar-link" data-role="customer">
+                <i class="fa-solid fa-file-invoice-dollar icon"></i>
+                <span class="link-text">Invoices</span>
+            </a>
+            <!-- Admin Only Example -->
+            <a href="#" class="sidebar-link" data-role="admin">
+                <i class="fa-solid fa-shield-halved icon"></i>
+                <span class="link-text">Admin Panel</span>
+            </a>
+        </nav>
+
+        <!-- Sidebar Footer: Mini User Profile -->
+        <div class="sidebar-footer">
+            <div class="user-mini-profile" id="userProfile">
+                <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                <div class="user-info">
+                    <span class="user-name" id="miniUserName" style="cursor: pointer; text-decoration: underline;">User</span>
+                    <p class="user-role" id="miniUserRole">Customer</p>
+                </div>
             </div>
-            <nav id="sidebar-menu">
-                <!-- Menu items injected by JS based on roles -->
-                <a href="#" class="sidebar-link active">
-                    <span class="icon">📋</span>
-                    <span>Dashboard</span>
-                </a>
-            </nav>
-        </aside>
+        </div>
+    </aside>
 
-        <!-- Main Content Area -->
-        <main class="main-content">
-            <header class="dashboard-header">
-                <h1>Welcome Back, <span id="header-name">Guest</span>!</h1>
-                <p>Manage your appointments and invoices below.</p>
-            </header>
+    <!-- 3. MAIN CONTENT (Right Column, Scrollable) -->
+    <main class="main-content" id="main-content">
+        
+        <!-- Header Section -->
+        <header class="dashboard-header">
+            <h1>Dashboard</h1>
+            <div class="header-actions">
+                <div class="search-container">
+                    <input type="text" placeholder="Search jobs or invoices..." id="quickSearch">
+                    <i class="fa-solid fa-search search-icon"></i>
+                </div>
+                <button class="icon-button" title="Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="badge">0</span>
+                </button>
+            </div>
+        </header>
 
-            <!-- Section 1: Job History -->
-            <section id="jobs-section" class="card-section">
-                <div class="dashboard-header-sub">
-                    <h2>Recent Jobs</h2>
-                </div>
-                <div id="job-history-container" class="dashboard-grid">
-                    <!-- Job cards will be injected here by feature -->
-                    <p class="loading-text">Loading your job history...</p>
-                </div>
-            </section>
+        <!-- Dashboard Grid Container -->
+        <div class="dashboard-grid-container">
 
-            <!-- Section 2: Invoices -->
-            <section id="invoices-section" class="card-section" style="margin-top: 40px;">
-                <div class="dashboard-header-sub">
-                    <h2>Download Invoices</h2>
+            <!-- Welcome Banner (Full Width) -->
+            <div class="welcome-banner-card">
+                <div class="welcome-text">
+                    <h2>Welcome back, <span id="welcomeName">Guest</span>!</h2>
+                    <p>Here's your service overview for today.</p>
                 </div>
-                <div id="invoice-list-container" class="dashboard-grid">
-                    <!-- Invoice list will be injected here by feature -->
-                    <p class="loading-text">Loading invoices...</p>
+                <div class="welcome-actions">
+                    <button class="btn btn-primary" onclick="document.getElementById('invoices-section').scrollIntoView({behavior: 'smooth'})">
+                        <i class="fa-solid fa-download"></i> View Invoices
+                    </button>
                 </div>
-            </section>
-        </main>
+            </div>
+
+            <!-- Stats Row (4 Items) -->
+            <div class="stat-card blue">
+                <div class="stat-icon-wrapper bg-blue"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="stat-details">
+                    <div class="stat-number" id="totalJobs">-</div>
+                    <div class="stat-label">Total Jobs</div>
+                </div>
+            </div>
+
+            <div class="stat-card green">
+                <div class="stat-icon-wrapper bg-green"><i class="fa-solid fa-check-circle"></i></div>
+                <div class="stat-details">
+                    <div class="stat-number" id="completedJobs">-</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+
+            <div class="stat-card yellow">
+                <div class="stat-icon-wrapper bg-yellow"><i class="fa-solid fa-clock"></i></div>
+                <div class="stat-details">
+                    <div class="stat-number" id="pendingJobs">-</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+
+            <div class="stat-card red">
+                <div class="stat-icon-wrapper bg-red"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                <div class="stat-details">
+                    <div class="stat-number" id="unpaidInvoices">-</div>
+                    <div class="stat-label">Unpaid Invoices</div>
+                </div>
+            </div>
+
+            <!-- Recent Activity (Wide Card - Spans 2) -->
+            <div class="content-card grid-span-2">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Job History</h3>
+                    <a href="#jobs-section" class="view-all-link">View All</a>
+                </div>
+                <div class="card-body" id="recent-jobs-preview">
+                    <p style="color:#888; text-align:center;">Loading recent jobs...</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions (Standard Card) -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="quick-actions">
+                        <a href="#invoices-section" class="action-btn primary">
+                            <i class="fa-solid fa-file-pdf"></i> Download Invoices
+                        </a>
+                        <a href="#" class="action-btn secondary" onclick="window.openProfileModal()">
+                            <i class="fa-solid fa-user-pen"></i> Update Profile
+                        </a>
+                        <a href="#" class="action-btn secondary">
+                            <i class="fa-solid fa-headset"></i> Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Latest Invoices (Wide Card - Spans 2) -->
+            <div class="content-card grid-span-2">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-file-invoice"></i> Latest Invoices</h3>
+                    <a href="#invoices-section" class="view-all-link">See All</a>
+                </div>
+                <div class="card-body" id="recent-invoices-preview">
+                    <p style="color:#888; text-align:center;">Loading invoices...</p>
+                </div>
+            </div>
+
+        </div> <!-- End Grid Container -->
+    </main>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-user-pen" style="margin-right: 10px; color: #667eea;"></i>Edit Profile</h2>
+                <span class="close-modal" id="close-modal-btn">&times;</span>
+            </div>
+
+            <form id="profile-form">
+                <!-- Email (Read Only) -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fa-solid fa-envelope" style="margin-right: 5px; color: #667eea;"></i>
+                        Email Address
+                    </label>
+                    <input type="email" id="profile-email" class="form-input" disabled title="Email cannot be changed">
+                    <small style="color: #888;">Contact support to change email.</small>
+                </div>
+
+                <div class="form-row">
+                    <!-- First Name -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fa-solid fa-user" style="margin-right: 5px; color: #667eea;"></i>
+                            First Name<span class="required-marker">*</span>
+                        </label>
+                        <input type="text" id="profile-first-name" class="form-input" required>
+                    </div>
+                    <!-- Last Name -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fa-solid fa-user" style="margin-right: 5px; color: #667eea;"></i>
+                            Last Name<span class="required-marker">*</span>
+                        </label>
+                        <input type="text" id="profile-last-name" class="form-input" required>
+                    </div>
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fa-solid fa-phone" style="margin-right: 5px; color: #667eea;"></i>
+                        Phone Number
+                    </label>
+                    <input type="tel" id="profile-phone" class="form-input">
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fa-solid fa-lock" style="margin-right: 5px; color: #667eea;"></i>
+                        New Password <span style="color:#888; font-weight:normal;">(Leave blank to keep current)</span>
+                    </label>
+                    <input type="password" id="profile-password" class="form-input" placeholder="********">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="cancel-profile-btn" class="btn btn-secondary">
+                        <i class="fa-solid fa-xmark"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-check"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+
+            <div id="profile-message" style="display:none; margin-top:10px;"></div>
+        </div>
     </div>
 
     <!-- Scripts -->
-    <!-- 1. Auth Modules (Must load first for guard checks) -->
     <script type="module">
         import { Session } from '/js/auth/session.js';
         import { Guards } from '/js/auth/guards.js';
+
+        // Hide loading overlay after a short delay
+        setTimeout(() => {
+            const loader = document.getElementById('loadingOverlay');
+            if (loader) loader.style.display = 'none';
+        }, 800);
 
         // Enforce login immediately
         if (!Session.isAuthenticated()) {
             window.location.href = '/login.html';
         } else {
-            // Update User Name
+            // Get User Data
             const name = localStorage.getItem('user_name');
-            document.getElementById('header-name').textContent = name || 'Customer';
-            document.getElementById('user-name-display').textContent = name || 'Customer';
+            const roles = Session.getRoles();
 
+            // Update UI Text
+            document.getElementById('miniUserName').textContent = name || 'Guest';
+            document.getElementById('miniUserRole').textContent = roles.join(', ') || 'User';
+            document.getElementById('welcomeName').textContent = name || 'Guest';
+
+            // Filter Sidebar Links by Role
+            filterSidebarByRole(roles);
+
+            // Logout Button
             const logoutBtn = document.getElementById('logout-btn');
             if (logoutBtn) {
-              logoutBtn.addEventListener('click', () => {
-                Session.logout();
+                logoutBtn.addEventListener('click', () => Session.logout());
+            }
+
+            // Open Profile Modal on Name Click
+            const nameDisplay = document.getElementById('miniUserName');
+            if (nameDisplay) {
+                nameDisplay.addEventListener('click', () => window.openProfileModal());
+            }
+
+            // Close Modal Events
+            ['close-modal-btn', 'cancel-profile-btn'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.addEventListener('click', () => window.closeProfileModal());
             });
 
-            document.getElementById('user-name-display').addEventListener('click', () => openProfileModal());
-          }
+            // Sidebar Toggle Logic (Controls Body Class for Grid Resize)
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebar-toggle');
+            const toggleIcon = toggleBtn?.querySelector('.toggle-icon');
+            const body = document.body;
+
+            if (sidebar && toggleBtn && toggleIcon && body) {
+                // Load saved state
+                const isCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
+                if (isCollapsed) {
+                    body.classList.add('sidebar-collapsed');
+                    sidebar.classList.add('collapsed');
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');
+                }
+
+                toggleBtn.addEventListener('click', () => {
+                    body.classList.toggle('sidebar-collapsed');
+                    sidebar.classList.toggle('collapsed');
+                    const isNowCollapsed = body.classList.contains('sidebar-collapsed');
+
+                    if (isNowCollapsed) {
+                        toggleIcon.classList.remove('fa-chevron-left');
+                        toggleIcon.classList.add('fa-chevron-right');
+                    } else {
+                        toggleIcon.classList.remove('fa-chevron-right');
+                        toggleIcon.classList.add('fa-chevron-left');
+                    }
+
+                    localStorage.setItem('sidebar_collapsed', isNowCollapsed);
+                });
+            }
+
+            // Search Placeholder
+            const searchInput = document.getElementById('quickSearch');
+            if (searchInput) {
+                searchInput.addEventListener('keyup', (e) => {
+                    // Add real search logic here later
+                    console.log('Searching:', e.target.value);
+                });
+            }
+        }
+
+        function filterSidebarByRole(userRoles) {
+            const links = document.querySelectorAll('.sidebar-link[data-role]');
+            links.forEach(link => {
+                const requiredRole = link.getAttribute('data-role');
+                if (!userRoles.includes(requiredRole)) {
+                    link.style.display = 'none';
+                }
+            });
         }
     </script>
 
-    <!-- 2. Feature Modules -->
-    <script type="module" src="/js/features/profile-manager.js"></script>
+    <!-- Feature Modules -->
     <script type="module" src="/js/features/job-history.js"></script>
     <script type="module" src="/js/features/invoice-viewer.js"></script>
+    <script type="module" src="/js/features/profile-manager.js"></script>
 </body>
 </html>
