@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Service Portal</title>
     
     <!-- Font Awesome -->
@@ -12,6 +13,21 @@
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/forms.css">
     <link rel="stylesheet" href="/css/dashboard-layout.css">
+    <style>
+        .btn-small {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+        .btn-small.edit-btn { color: #667eea; }
+        .btn-small.edit-btn:hover { color: #5568d3; }
+        .btn-small.delete-btn { color: #ef4444; }
+        .btn-small.delete-btn:hover { color: #dc2626; }
+
+    </style>
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -41,10 +57,34 @@
             </button>
         </div>
         <nav id="sidebar-menu">
-            <a href="#" class="sidebar-link active" data-role="admin"><i class="fa-solid fa-shield-halved icon"></i><span class="link-text">Admin Panel</span></a>
-            <a href="#users-section" class="sidebar-link" data-role="admin"><i class="fa-solid fa-users icon"></i><span class="link-text">User Management</span></a>
-            <a href="#settings-section" class="sidebar-link" data-role="admin"><i class="fa-solid fa-gear icon"></i><span class="link-text">Settings</span></a>
-            <a href="/dashboards/customer.html" class="sidebar-link" data-role="customer"><i class="fa-solid fa-gauge-high icon"></i><span class="link-text">Customer View</span></a>
+            <a href="/dashboards/admin.html" class="sidebar-link active" data-role="admin">
+                <i class="fa-solid fa-gauge-high icon"></i>
+                <span class="link-text">Dashboard</span>
+            </a>
+            <a href="#jobs-section" class="sidebar-link" data-role="admin dispatcher technician">
+                <i class="fa-solid fa-wrench icon"></i>
+                <span class="link-text">Jobs</span>
+            </a>
+            <a href="#" class="sidebar-link" data-role="admin dispatcher technician">
+                <i class="fa-solid fa-users icon"></i>
+                <span class="link-text">Customers</span>
+            </a>
+            <a href="#" class="sidebar-link" data-role="admin dispatcher technician">
+                <i class="fa-solid fa-boxes icon"></i>
+                <span class="link-text">Inventory</span>
+            </a>
+            <a href="#" class="sidebar-link" data-role="admin dispatcher technician">
+                <i class="fa-solid fa-tasks icon"></i>
+                <span class="link-text">Assignments</span>
+            </a>
+            <a href="/dashboards/admin-users.html" class="sidebar-link" data-role="admin">
+                <i class="fa-solid fa-shield-halved icon"></i>
+                <span class="link-text">User Mgmt</span>
+            </a>
+            <a href="#settings-section" class="sidebar-link" data-role="admin">
+                <i class="fa-solid fa-cog icon"></i>
+                <span class="link-text">Settings</span>
+            </a>
         </nav>
         <div class="sidebar-footer">
             <div class="user-mini-profile">

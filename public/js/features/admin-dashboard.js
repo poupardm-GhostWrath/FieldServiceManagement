@@ -20,7 +20,6 @@ export function initAdminDashboard() {
     const roles = Session.getRoles();
 
     updateUIText(name, roles);
-    filterSidebarByRole(roles);
     setupEventListeners();
     loadUsers();
     updateStats();
@@ -390,8 +389,8 @@ function renderUserTable(users) {
                 <td>${email}</td>
                 <td><span class="role-badge">${roles}</span></td>
                 <td style="text-align: center;">
-                    <button class="btn-small edit-btn" onclick="window.editUser('${userId}')"><i class="fa-solid fa-edit"></i></button>
-                    <button class="btn-small delete-btn" style="background:#ef4444;" onclick="window.deleteUser('${userId}')"><i class="fa-solid fa-trash"></i></button>
+                    <button class="btn-small edit-btn" onclick="window.editUser('${userId}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="btn-small delete-btn" onclick="window.deleteUser('${userId}')"><i class="fa-solid fa-trash-can"></i></button>
                 </td>
             </tr>
         `;
