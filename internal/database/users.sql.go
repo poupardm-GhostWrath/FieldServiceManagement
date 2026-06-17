@@ -106,6 +106,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 
 const getUsers = `-- name: GetUsers :many
 SELECT id, email, password_hash, first_name, last_name, phone, is_active, created_at, updated_at FROM users
+WHERE is_active = true
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {

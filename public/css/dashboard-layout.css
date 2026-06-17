@@ -26,6 +26,7 @@ body {
     position: fixed;
     padding-top: 0;
     padding-bottom: 0;
+    width: 100%;
 }
 
 /* Collapse State: Change the first column width */

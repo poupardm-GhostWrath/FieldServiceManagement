@@ -12,7 +12,7 @@ CREATE TABLE customers (
   postal_code VARCHAR(20) NOT NULL,
   country VARCHAR(50) DEFAULT 'CANADA',
   notes TEXT,
-  user_id UUID REFERENCES users(id), -- Links customer to a user if created
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL, -- Links customer to a user if created
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   deleted_at TIMESTAMP WITH TIME ZONE-- Soft delete

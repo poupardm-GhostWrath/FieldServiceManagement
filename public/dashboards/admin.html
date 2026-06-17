@@ -99,7 +99,7 @@
                     </button>
                 </div>
                 <div class="card-body" style="overflow-x: auto;">
-                    <table class="admin-table" id="users-table">
+                    <table class="admin-table" id="users-table" style="width: 100%;">
                         <thead><tr><th>User</th><th>Email</th><th>Roles</th><th>Actions</th></tr></thead>
                         <tbody id="users-table-body"><tr><td colspan="4" style="text-align:center; color:#888;">Loading...</td></tr></tbody>
                     </table>
@@ -184,7 +184,7 @@
                 </div>
                 <div class="modal-actions">
                     <button type="button" id="cancel-profile-btn" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
-                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Changes</button>
+                    <button type="submit" id="profile-submitBtn" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Changes</button>
                 </div>
             </form>
             <div id="profile-message" style="display:none; margin-top:10px;"></div>
@@ -249,7 +249,7 @@
                 </div>
                 <div class="modal-actions">
                     <button type="button" id="cancel-user-btn" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
-                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save User</button>
+                    <button type="submit" id="user-submitBtn" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save User</button>
                 </div>
             </form>
             <div id="user-message" style="display:none; margin-top:10px;"></div>

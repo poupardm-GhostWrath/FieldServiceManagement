@@ -64,8 +64,11 @@ function setupEventListeners() {
     // ---- USER MODAL EVENTS ----
     document.getElementById('close-user-modal-btn')?.addEventListener('click', closeUserModal);
     document.getElementById('cancel-user-btn')?.addEventListener('click', closeUserModal);
-    document.getElementById('user-form')?.addEventListener('submit', handleUserFormSubmit);
-
+    const userSubmitBtn = document.getElementById('user-submitBtn');
+    const userForm = document.getElementById('user-form');
+    if (userSubmitBtn && userForm) {
+        userForm.addEventListener('submit', handleUserFormSubmit);
+    }
     // ---- SIDEBAR TOGGLE ----
     setupSidebarToggle();
 }
@@ -226,9 +229,24 @@ window.closeUserModal = closeUserModal;
 window.editUser = (id) => openUserModal(id);
 window.deleteUser = async (id) => {
     if (!confirm('Are you sure you want to delete this user?')) return;
+    const token = Session.getToken();
+    if (!token) {
+        console.error("No token found in session");
+        return;
+    }
     try {
         // TODO: Real API call - DELETE /users/{id}
-        alert('User deleted (Demo mode)');
+        const response = await fetch(`${USER_API_ENDPOINT}/${id}`, {
+            method: "DELETE",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API Error (${response.status}): ${errorText}`);
+        }
+        alert('User deleted');
         loadUsers();
     } catch (e) {
         alert('Error deleting user');
@@ -249,13 +267,20 @@ async function handleUserFormSubmit(e) {
     }
 
     const id = document.getElementById('user-id').value;
+    const firstName = document.getElementById('user-first-name').value.trim();
+    const lastName = document.getElementById('user-last-name').value.trim();
+    const email = document.getElementById('user-email').value.trim();
+    const phone = document.getElementById('user-phone').value.trim();
+    const roles = Array.from(document.querySelectorAll('.role-checkbox:checked')).map(cb => cb.value);
+    const active = document.getElementById('user-active').checked;
+
     const formData = {
-        first_name: document.getElementById('user-first-name').value,
-        last_name: document.getElementById('user-last-name').value,
-        email: document.getElementById('user-email').value,
-        phone: document.getElementById('user-phone').value,
-        roles: Array.from(document.querySelectorAll('.role-checkbox:checked')).map(cb => cb.value),
-        active: document.getElementById('user-active').checked
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        phone: phone,
+        roles: roles,
+        active: active
     };
 
     const pwd = document.getElementById('user-password').value;
@@ -265,8 +290,6 @@ async function handleUserFormSubmit(e) {
     showMsg(msgEl, 'Saving...', 'loading');
 
     try {
-        // TODO: Real API call
-        // const res = await fetch(id ? `${USER_API_ENDPOINT}/${id}` : USER_API_ENDPOINT, { ... });
         if (id) {
             const response = await fetch(`${USER_API_ENDPOINT}/${id}`, {
                 method: 'PUT',
@@ -274,7 +297,7 @@ async function handleUserFormSubmit(e) {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ formData })
+                body: JSON.stringify(formData)
             });
             if (!response.ok) {
                 const errorText = await response.text();
@@ -287,7 +310,7 @@ async function handleUserFormSubmit(e) {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ formData })
+                body: JSON.stringify(formData)
             });
             if (!response.ok) {
                 const errorText = await response.text();
@@ -366,7 +389,7 @@ function renderUserTable(users) {
                 <td><strong>${firstName} ${lastName}</strong></td>
                 <td>${email}</td>
                 <td><span class="role-badge">${roles}</span></td>
-                <td>
+                <td style="text-align: center;">
                     <button class="btn-small edit-btn" onclick="window.editUser('${userId}')"><i class="fa-solid fa-edit"></i></button>
                     <button class="btn-small delete-btn" style="background:#ef4444;" onclick="window.deleteUser('${userId}')"><i class="fa-solid fa-trash"></i></button>
                 </td>

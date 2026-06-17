@@ -22,8 +22,8 @@ func main() {
 	user, err := config.APICfg.DBQueries.CreateUser(context.Background(), database.CreateUserParams{
 		Email:        "admin@example.com",
 		PasswordHash: hash,
-		FirstName:    "admin_f",
-		LastName:     "admin_l",
+		FirstName:    "admin",
+		LastName:     "test",
 	})
 	if err != nil {
 		log.Fatalf("failed to create user: %v\n", err)
