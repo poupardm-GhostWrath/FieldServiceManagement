@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submitBtn');
 
     // Regex Patterns
-    const emailRegex = /^[A-Za-z0-9]([A-Za-z0-9._%+-]*[A-Za-z0-9])?@[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?\.[A-Za-z]{2,}$/;
-    const passRegex = /^[A-Za-z0-9@$!%*?&]{12,64}$/;
+    const emailRegex = /[A-Za-z0-9]([A-Za-z0-9._%+-]*[A-Za-z0-9])?@[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?\.[A-Za-z]{2,}/;
+    const passRegex = /[A-Za-z0-9@$!%*?&]{12,64}/;
 
     // Validation Functions
     function validateEmail(email) {

@@ -1,0 +1,263 @@
+<!-- public/dashboards/admin.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Service Portal</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/forms.css">
+    <link rel="stylesheet" href="/css/dashboard-layout.css">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading admin panel...</p>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-building logo-icon-fa"></i>
+            <span class="logo-text">Your Company</span>
+        </div>
+        <div class="nav-user-info">
+            <button id="logout-btn" class="btn-logout">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-toggle-container">
+            <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-chevron-left toggle-icon"></i>
+            </button>
+        </div>
+        <nav id="sidebar-menu">
+            <a href="#" class="sidebar-link active" data-role="admin"><i class="fa-solid fa-shield-halved icon"></i><span class="link-text">Admin Panel</span></a>
+            <a href="#users-section" class="sidebar-link" data-role="admin"><i class="fa-solid fa-users icon"></i><span class="link-text">User Management</span></a>
+            <a href="#settings-section" class="sidebar-link" data-role="admin"><i class="fa-solid fa-gear icon"></i><span class="link-text">Settings</span></a>
+            <a href="/dashboards/customer.html" class="sidebar-link" data-role="customer"><i class="fa-solid fa-gauge-high icon"></i><span class="link-text">Customer View</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-mini-profile">
+                <div class="avatar"><i class="fa-solid fa-user-shield"></i></div>
+                <div class="user-info">
+                    <span class="user-name" id="miniUserName" style="cursor: pointer; text-decoration: underline;">User</span>
+                    <p class="user-role" id="miniUserRole">Administrator</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <header class="dashboard-header">
+            <h1>Admin Panel</h1>
+            <div class="header-actions">
+                <div class="search-container">
+                    <input type="text" placeholder="Search users..." id="quickSearch">
+                    <i class="fa-solid fa-search search-icon"></i>
+                </div>
+                <button class="icon-button"><i class="fa-solid fa-bell"></i><span class="badge">2</span></button>
+            </div>
+        </header>
+
+        <div class="dashboard-grid-container">
+            <!-- Welcome Banner -->
+            <div class="welcome-banner-card">
+                <div class="welcome-text">
+                    <h2>Welcome back, <span id="welcomeName">Admin</span>!</h2>
+                    <p>Manage users, assign roles, and control system settings.</p>
+                </div>
+                <div class="welcome-actions">
+                    <button class="btn btn-primary" onclick="openCreateUserModal()">
+                        <i class="fa-solid fa-user-plus"></i> Add New User
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stat-card blue"><div class="stat-icon-wrapper bg-blue"><i class="fa-solid fa-users"></i></div><div class="stat-details"><div class="stat-number" id="totalUsers">-</div><div class="stat-label">Total Users</div></div></div>
+            <div class="stat-card green"><div class="stat-icon-wrapper bg-green"><i class="fa-solid fa-user-check"></i></div><div class="stat-details"><div class="stat-number" id="activeUsers">-</div><div class="stat-label">Active Now</div></div></div>
+            <div class="stat-card yellow"><div class="stat-icon-wrapper bg-yellow"><i class="fa-solid fa-user-clock"></i></div><div class="stat-details"><div class="stat-number" id="pendingApprovals">-</div><div class="stat-label">Pending Approvals</div></div></div>
+            <div class="stat-card red"><div class="stat-icon-wrapper bg-red"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="stat-details"><div class="stat-number" id="systemAlerts">-</div><div class="stat-label">System Alerts</div></div></div>
+
+            <!-- User Table -->
+            <div class="content-card grid-span-2">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-users"></i> User Management</h3>
+                    <button class="action-btn primary" style="padding: 8px 16px;" onclick="openCreateUserModal()">
+                        <i class="fa-solid fa-plus"></i> New User
+                    </button>
+                </div>
+                <div class="card-body" style="overflow-x: auto;">
+                    <table class="admin-table" id="users-table">
+                        <thead><tr><th>User</th><th>Email</th><th>Roles</th><th>Actions</th></tr></thead>
+                        <tbody id="users-table-body"><tr><td colspan="4" style="text-align:center; color:#888;">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="content-card">
+                <div class="card-header"><h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3></div>
+                <div class="card-body">
+                    <div class="quick-actions">
+                        <a href="#" class="action-btn primary" onclick="openCreateUserModal()"><i class="fa-solid fa-user-plus"></i> Create User</a>
+                        <a href="#settings-section" class="action-btn secondary"><i class="fa-solid fa-gear"></i> Settings</a>
+                        <a href="#" class="action-btn secondary"><i class="fa-solid fa-file-export"></i> Reports</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Grid -->
+            <div class="content-card grid-span-2" id="settings-section">
+                <div class="card-header"><h3><i class="fa-solid fa-gear"></i> System Settings</h3></div>
+                <div class="card-body">
+                    <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div class="setting-item" style="background: #fafafa; padding: 20px; border-radius: 8px;">
+                            <h4 style="margin: 0 0 10px 0;"><i class="fa-solid fa-envelope"></i> Email Config</h4>
+                            <button class="action-btn secondary" style="width: 100%;">Configure</button>
+                        </div>
+                        <div class="setting-item" style="background: #fafafa; padding: 20px; border-radius: 8px;">
+                            <h4 style="margin: 0 0 10px 0;"><i class="fa-solid fa-key"></i> Security Policies</h4>
+                            <button class="action-btn secondary" style="width: 100%;">Configure</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+             <!-- Activity Log -->
+             <div class="content-card">
+                <div class="card-header"><h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h3></div>
+                <div class="card-body" id="activity-log">
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem;"><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> New user registered</li>
+                        <li style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem;"><i class="fa-solid fa-user-pen" style="color: #667eea;"></i> Role updated</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+     <!-- ==============================
+         MODAL 1: Edit Profile (Self)
+         ============================== -->
+    <div id="profile-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-user-pen" style="margin-right: 10px; color: #667eea;"></i>Edit Profile</h2>
+                <span class="close-modal" id="close-profile-modal-btn">&times;</span>
+            </div>
+            <form id="profile-form">
+                <!-- Email (Read Only) -->
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-envelope" style="margin-right: 5px; color: #667eea;"></i> Email Address</label>
+                    <input type="email" id="profile-email" class="form-input" disabled title="Email cannot be changed">
+                    <small style="color: #888;">Contact support to change email.</small>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-user" style="margin-right: 5px; color: #667eea;"></i> First Name<span class="required-marker">*</span></label>
+                        <input type="text" id="profile-first-name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-user" style="margin-right: 5px; color: #667eea;"></i> Last Name<span class="required-marker">*</span></label>
+                        <input type="text" id="profile-last-name" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-phone" style="margin-right: 5px; color: #667eea;"></i> Phone Number</label>
+                    <input type="tel" id="profile-phone" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-lock" style="margin-right: 5px; color: #667eea;"></i> New Password <span style="color:#888; font-weight:normal;">(Leave blank to keep current)</span></label>
+                    <input type="password" id="profile-password" class="form-input" placeholder="********">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="cancel-profile-btn" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Changes</button>
+                </div>
+            </form>
+            <div id="profile-message" style="display:none; margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <!-- ==============================
+         MODAL 2: Create/Edit User (Admin CRUD)
+         ============================== -->
+    <div id="user-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="width: 600px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-user-plus" style="margin-right: 10px; color: #667eea;"></i><span id="modal-title">Create New User</span></h2>
+                <span class="close-modal" id="close-user-modal-btn">&times;</span>
+            </div>
+            <form id="user-form">
+                <input type="hidden" id="user-id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">First Name<span class="required-marker">*</span></label>
+                        <input type="text" id="user-first-name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Name<span class="required-marker">*</span></label>
+                        <input type="text" id="user-last-name" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address<span class="required-marker">*</span></label>
+                    <input type="email" id="user-email" class="form-input" required>
+                </div>
+                <div class="form-group" id="password-field">
+                    <label class="form-label">Password<span class="required-marker">*</span></label>
+                    <input type="password" id="user-password" class="form-input" placeholder="Min 12 characters">
+                    <small style="color: #888;">Leave blank when editing an existing user</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" id="user-phone" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Assign Roles<span class="required-marker">*</span></label>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
+                        <label style="display:flex; align-items:center; gap:8px; background:#f5f5f5; padding:8px 12px; border-radius:5px;">
+                            <input type="checkbox" name="roles" value="customer" class="role-checkbox"> Customer
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; background:#f5f5f5; padding:8px 12px; border-radius:5px;">
+                            <input type="checkbox" name="roles" value="technician" class="role-checkbox"> Technician
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; background:#f5f5f5; padding:8px 12px; border-radius:5px;">
+                            <input type="checkbox" name="roles" value="dispatcher" class="role-checkbox"> Dispatcher
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; background:#f5f5f5; padding:8px 12px; border-radius:5px;">
+                            <input type="checkbox" name="roles" value="admin" class="role-checkbox"> Admin
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" id="user-active" checked> Enable Account Immediately
+                    </label>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="cancel-user-btn" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save User</button>
+                </div>
+            </form>
+            <div id="user-message" style="display:none; margin-top:10px;"></div>
+        </div>
+    </div>
+    <!-- Scripts -->
+    <!-- Only Import the Feature Module -->
+    <script type="module" src="/js/features/admin-dashboard.js"></script>
+    <script type="module" src="/js/features/profile-manager.js"></script>
+</body>
+</html>
