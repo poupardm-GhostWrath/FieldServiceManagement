@@ -123,3 +123,64 @@ func (q *Queries) GetInventoryItemBySKU(ctx context.Context, sku string) (Invent
 	)
 	return i, err
 }
+
+const updateInventoryItem = `-- name: UpdateInventoryItem :one
+UPDATE inventory_items
+SET name = $2, 
+    description = $3, 
+    category = $4, 
+    unit_price = $5, 
+    quantity_in_stock = $6, 
+    reorder_threshold = $7, 
+    supplier_name = $8, 
+    supplier_contact = $9, 
+    is_active = $10,
+    updated_at = NOW()
+WHERE sku = $1
+RETURNING id, sku, name, description, category, unit_price, quantity_in_stock, reorder_threshold, supplier_name, supplier_contact, is_active, created_at, updated_at
+`
+
+type UpdateInventoryItemParams struct {
+	Sku              string
+	Name             string
+	Description      pgtype.Text
+	Category         pgtype.Text
+	UnitPrice        pgtype.Numeric
+	QuantityInStock  int32
+	ReorderThreshold int32
+	SupplierName     pgtype.Text
+	SupplierContact  pgtype.Text
+	IsActive         pgtype.Bool
+}
+
+func (q *Queries) UpdateInventoryItem(ctx context.Context, arg UpdateInventoryItemParams) (InventoryItem, error) {
+	row := q.db.QueryRow(ctx, updateInventoryItem,
+		arg.Sku,
+		arg.Name,
+		arg.Description,
+		arg.Category,
+		arg.UnitPrice,
+		arg.QuantityInStock,
+		arg.ReorderThreshold,
+		arg.SupplierName,
+		arg.SupplierContact,
+		arg.IsActive,
+	)
+	var i InventoryItem
+	err := row.Scan(
+		&i.ID,
+		&i.Sku,
+		&i.Name,
+		&i.Description,
+		&i.Category,
+		&i.UnitPrice,
+		&i.QuantityInStock,
+		&i.ReorderThreshold,
+		&i.SupplierName,
+		&i.SupplierContact,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
